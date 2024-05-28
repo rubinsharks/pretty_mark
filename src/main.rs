@@ -4,8 +4,9 @@ use std::fmt::Debug;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Display, Path};
-use markdown::mdast::{Heading, Node};
+use markdown::mdast::{Heading, List, Node};
 use markdown::message::Message;
+use crate::HTMLTag::P;
 
 fn main() -> std::io::Result<()> {
     let mut file = File::create("rust.html")?;
@@ -91,6 +92,9 @@ enum HTMLTag {
     Blockquote,
     Code,
     Text,
+    UL,
+    OL,
+    LI,
 }
 
 impl HTMLTag {
@@ -100,6 +104,13 @@ impl HTMLTag {
             2 => Self::H2,
             3 => Self::H3,
             _ => Self::P
+        }
+    }
+
+    fn ordered(start: &Node) -> Self {
+        match start {
+            Node::List(..) => Self::OL,
+            _ => Self::UL,
         }
     }
 }
@@ -120,17 +131,23 @@ fn md_class(md: &Node, sup: Option<&Node>) -> String {
                 Some(node) => {
                     match node {
                         Node::BlockQuote(..) => String::from("text-xl italic font-medium leading-relaxed text-gray-900 dark:text-white"),
-                        _ => String::from("text-gray-800 dark:text-gray-800")
+                        _ => String::from("text-gray-800 dark:text-gray-800 mt-1")
                     }
                 }
             }
         }
         Node::Heading(value) => {
             match value.depth {
-                1 => String::from("text-4xl font-bold mb-3"),
-                2 => String::from("text-3xl font-bold mb-3"),
-                3 => String::from("text-2xl font-bold mb-3"),
+                1 => String::from("text-4xl font-bold mb-3 mt-5"),
+                2 => String::from("text-3xl font-bold mb-3 mt-5"),
+                3 => String::from("text-2xl font-bold mb-3 mt-5"),
                 _ => String::from(""),
+            }
+        }
+        Node::List(value) => {
+            match value.start {
+                None => String::from("list-disc pl-5"),
+                Some(_) => String::from("list-decimal pl-5"),
             }
         }
         Node::BlockQuote(..) => String::from("p-4 my-4 border-s-4 border-gray-300 bg-gray-50 dark:border-gray-500 dark:bg-gray-800"),
@@ -206,6 +223,26 @@ fn md_to_html(md: &Node, sup: Option<&Node>) -> Option<HTMLNode> {
                         value: String::from(&code.value),
                     }
                 ],
+                attributes: HashMap::from([
+                    ("class", md_class(md, sup))
+                ]),
+                value: "".to_string(),
+            })
+        }
+        Node::List(node) => {
+            Some(HTMLNode {
+                tag: HTMLTag::ordered(md),
+                children: node.children.iter().filter_map(|x| md_to_html(x, Some(md))).collect(),
+                attributes: HashMap::from([
+                    ("class", md_class(md, sup))
+                ]),
+                value: "".to_string(),
+            })
+        }
+        Node::ListItem(node) => {
+            Some(HTMLNode {
+                tag: HTMLTag::LI,
+                children: node.children.iter().filter_map(|x| md_to_html(x, Some(md))).collect(),
                 attributes: HashMap::from([
                     ("class", md_class(md, sup))
                 ]),
@@ -306,7 +343,10 @@ impl HTMLTag {
             HTMLTag::H3 => { "h3" }
             HTMLTag::Blockquote => { "blockquote" }
             HTMLTag::Code => { "code" }
-            HTMLTag::Text => { "" }
+            HTMLTag::UL => { "ul" }
+            HTMLTag::OL => { "ol" }
+            HTMLTag::LI => { "li" }
+            _ => { "" }
         }
     }
 }

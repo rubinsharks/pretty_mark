@@ -32,6 +32,8 @@
 만일 Command에서 Rust를 시작하고자 한다면 Cargo부터 이해하면 됩니다. 
 
 ## Hello World!
+1. Test1
+2. Test2
 
 ## println!
 

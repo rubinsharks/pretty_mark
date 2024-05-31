@@ -21,13 +21,13 @@ fn main() -> std::io::Result<()> {
             println!("{:#?}", node);
             match md_to_html(&node, None) {
                 None => { String::from("1") }
-                Some(node) => { node.html() }
+                Some(node) => { node.html(0) }
             }
         }
         Err(_) => { String::from("2") }
     };
 
-    file.write(head.html().as_bytes());
+    file.write(head.html(0).as_bytes());
     file.write(format!("\n").as_bytes());
     file.write_all(html.as_bytes())?;
     Ok(())
@@ -95,6 +95,8 @@ enum HTMLTag {
     UL,
     OL,
     LI,
+    Strong,
+    EM,
 }
 
 impl HTMLTag {
@@ -207,6 +209,26 @@ fn md_to_html(md: &Node, sup: Option<&Node>) -> Option<HTMLNode> {
                 value: String::from(&node.value.replace("\n", "<br />")),
             })
         }
+        Node::Strong(node) => {
+            Some(HTMLNode {
+                tag: HTMLTag::Strong,
+                children: node.children.iter().filter_map(|x| md_to_html(x, Some(md))).collect(),
+                attributes: HashMap::from([
+                    ("class", md_class(md, sup))
+                ]),
+                value: String::from(""),
+            })
+        }
+        Node::Emphasis(node) => {
+            Some(HTMLNode {
+                tag: HTMLTag::EM,
+                children: node.children.iter().filter_map(|x| md_to_html(x, Some(md))).collect(),
+                attributes: HashMap::from([
+                    ("class", md_class(md, sup))
+                ]),
+                value: String::from(""),
+            })
+        }
         Node::Code(code) => {
             Some(HTMLNode {
                 tag: HTMLTag::PRE,
@@ -292,7 +314,7 @@ impl HTMLNode {
         }
     }
 
-    fn html(&self) -> String {
+    fn html(&self, depth: usize) -> String {
         let mut str = String::new();
         let tag = self.tag.tag();
         if !tag.is_empty() {
@@ -309,10 +331,13 @@ impl HTMLNode {
                 str.push_str(format!("{}", self.value).as_str());
             } else {
                 for child in &self.children {
-                    str.push_str("\n\t");
-                    str.push_str(child.html().as_str());
+                    str.push_str("\n");
+                    str.push_str("\t");
+                    (0..depth).for_each(|x| str.push_str("\t"));
+                    str.push_str(child.html(depth + 1).as_str());
                 }
                 str.push_str("\n");
+                (0..depth).for_each(|x| str.push_str("\t"));
             }
             str.push_str(format!("</{}>", self.tag.tag()).as_str());
         } else {
@@ -332,20 +357,22 @@ impl HTMLTag {
     }
     fn tag(&self) -> &'static str {
         match self {
-            HTMLTag::P => { "p" }
-            HTMLTag::PRE => { "pre" }
-            HTMLTag::H1 => { "h1" }
-            HTMLTag::Script => { "script" }
-            HTMLTag::Link => { "link" }
-            HTMLTag::Head => { "head" }
-            HTMLTag::Body => { "body" }
-            HTMLTag::H2 => { "h2" }
-            HTMLTag::H3 => { "h3" }
-            HTMLTag::Blockquote => { "blockquote" }
-            HTMLTag::Code => { "code" }
-            HTMLTag::UL => { "ul" }
-            HTMLTag::OL => { "ol" }
-            HTMLTag::LI => { "li" }
+            HTMLTag::P => "p",
+            HTMLTag::PRE => "pre",
+            HTMLTag::H1 => "h1",
+            HTMLTag::Script => "script",
+            HTMLTag::Link => "link",
+            HTMLTag::Head => "head",
+            HTMLTag::Body => "body",
+            HTMLTag::H2 => "h2",
+            HTMLTag::H3 => "h3",
+            HTMLTag::Blockquote => "blockquote",
+            HTMLTag::Code => "code",
+            HTMLTag::UL => "ul",
+            HTMLTag::OL => "ol",
+            HTMLTag::LI => "li",
+            HTMLTag::Strong => "strong",
+            HTMLTag::EM => "em",
             _ => { "" }
         }
     }

@@ -29,11 +29,12 @@
 - 고성능 대결을 할게 아니라면 똑같은 고세대 언어와 생산성 차이가 납니다.
 
 ## Cargo에 대한 이해 
-만일 Command에서 Rust를 시작하고자 한다면 Cargo부터 이해하면 됩니다. 
+만일 Command에서 *Rust*를 시작하고자 한다면 **Cargo**부터 이해하면 됩니다. 
 
 ## Hello World!
 1. Test1
 2. Test2
+- [x] Task
 
 ## println!
 

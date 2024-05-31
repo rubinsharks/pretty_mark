@@ -2,12 +2,19 @@
 
 # RubinsharksBlog
 
+## 서론
+
 ### 인사말
 
 안녕하세요, Rubinsharks의 개발 블로그입니다. 반갑습니다.
 
 저는 모바일을 전문으로 하지만
 다방면으로 영역을 넓혀가는 중입니다.
+
+* 외부링크: <http://example.com/>
+
+[Google](https://google.com "google link")
+![Alt text](image.jpeg "Optional title")
 
 ``` rust
 fn main() {

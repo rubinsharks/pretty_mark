@@ -9,13 +9,13 @@ use markdown::message::Message;
 use crate::HTMLTag::P;
 
 fn main() -> std::io::Result<()> {
-    let mut file = File::create("rust.html")?;
+    let mut file = File::create("index.html")?;
 
     let mut head = HTMLNode::new(HTMLTag::Head);
     let headers = headers_highlight();
     head.children = headers;
 
-    let path = Path::new("root/rust.md");
+    let path = Path::new("root/index.md");
     let html = match parser(path) {
         Ok(node) => {
             println!("{:#?}", node);
@@ -97,6 +97,8 @@ enum HTMLTag {
     LI,
     Strong,
     EM,
+    IMG,
+    A,
 }
 
 impl HTMLTag {
@@ -271,6 +273,33 @@ fn md_to_html(md: &Node, sup: Option<&Node>) -> Option<HTMLNode> {
                 value: "".to_string(),
             })
         }
+        Node::Link(node) => {
+            Some(HTMLNode {
+                tag: HTMLTag::A,
+                children: node.children.iter().filter_map(|x| md_to_html(x, Some(md))).collect(),
+                attributes: HashMap::from([
+                    ("class", md_class(md, sup)),
+                    ("href", node.url.to_string()),
+                ]),
+                value: "".to_string(),
+            })
+        }
+        Node::Image(node) => {
+            Some(HTMLNode {
+                tag: HTMLTag::IMG,
+                children: vec![],
+                attributes: HashMap::from([
+                    ("class", md_class(md, sup)),
+                    ("src", format!("root/{}", node.url.to_string())),
+                    ("alt", node.alt.to_string()),
+                    ("title", match &node.title {
+                        None => "".to_string(),
+                        Some(title) => title.to_string(),
+                    })
+                ]),
+                value: "".to_string(),
+            })
+        }
         _ => {
             None
         }
@@ -373,6 +402,8 @@ impl HTMLTag {
             HTMLTag::LI => "li",
             HTMLTag::Strong => "strong",
             HTMLTag::EM => "em",
+            HTMLTag::IMG => "img",
+            HTMLTag::A => "a",
             _ => { "" }
         }
     }

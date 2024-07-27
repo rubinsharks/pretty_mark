@@ -15,9 +15,12 @@
 
 [Google](https://google.com "google link")
 ![Alt text](image.jpeg "Optional title")
+[Link](rust/rust.html "")
 
 ``` rust
 fn main() {
     println!("Hello, world!");
 }
 ```
+
+[#TAG]: # "android, rust"

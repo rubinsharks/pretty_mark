@@ -1,17 +1,17 @@
-use std::{fmt, fs, io};
-use std::ffi::OsStr;
-use std::fmt::Formatter;
-use std::fs::File;
-use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
-use crate::parser::file::{find_md, read_dir_recursive};
-
 mod markdown;
 mod file;
 mod html;
 
+use std::{fmt, fs, io};
+use std::fmt::Formatter;
+use std::fs::File;
+use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
+
 use markdown::*;
-use crate::parser::html::{headers_highlight, HTMLNode, HTMLTag};
+use file::{change_root, find_images, find_md, read_dir_recursive};
+use html::{headers_highlight, HTMLNode, HTMLTag};
+use crate::parser::html::footer;
 
 struct Page {
     path: String,
@@ -51,26 +51,35 @@ pub fn make_page(page: &Page) -> Result<(), &'static str> {
 
 pub fn page_to_html(root: &str, page: &Page) -> Result<(), &'static str> {
     let path = Path::new(&page.path);
-    let md_path = find_md(path)?;
-    let md_path = Path::new(&md_path);
+    let md = find_md(path)?;
+    let images = find_images(path)?;
+    let md_path = Path::new(&md);
+
+    match fs::metadata(md_path) {
+        Ok(metadata) => {
+            if let created = metadata.created().ok().unwrap() {
+                println!("{:?}", created);
+            }
+            let updated = metadata.modified();
+        }
+        Err(_) => {}
+    }
 
     let html = match parser(md_path) {
         Ok(node) => {
-            // println!("{:#?}", node);
+            println!("{:#?}", node);
             match md_to_html(&node, None) {
                 None => { String::from("1") }
-                Some(node) => { node.html(0) }
+                Some(mut node) => {
+                    node.children.push(footer());
+                    node.html(0)
+                }
             }
         }
         Err(_) => { String::from("2") }
     };
 
-    let mut components: Vec<_> = path.components().collect();
-    components.remove(0);
-    let mut html_path = components.iter()
-        .map(|x| x.as_os_str().to_str().unwrap())
-        .fold("".to_string(), |b, x| b + x);
-    let new_path = root.to_string() + "/" + html_path.as_str();
+    let new_path = change_root(root, path);
     let new_path = Path::new(&new_path);
     let html_file_name = md_path.file_stem().unwrap().to_str().unwrap().to_string() + ".html";
     let html_path = new_path.join(html_file_name);
@@ -85,6 +94,10 @@ pub fn page_to_html(root: &str, page: &Page) -> Result<(), &'static str> {
     file.write(head.html(0).as_bytes()).ok().ok_or("head write fails")?;
     file.write(format!("\n").as_bytes()).ok().ok_or("")?;
     file.write_all(html.as_bytes()).ok().ok_or("all fails")?;
+
+    for image in images {
+        let _ = fs::copy(image.clone(), new_path.join(image.file_name().unwrap()));
+    }
 
     Ok(())
 }

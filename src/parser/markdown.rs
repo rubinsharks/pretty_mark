@@ -22,30 +22,30 @@ pub fn parser(path: &Path) -> Result<Node, &'static str> {
 
 pub fn md_class(md: &Node, sup: Option<&Node>) -> String {
     match md {
-        Node::Root(..) => String::from("container mx-auto"),
+        Node::Root(..) => String::from("container mx-auto bg-white dark:bg-slate-900"),
         Node::Paragraph(..) => {
             match sup {
                 None => String::from(""),
                 Some(node) => {
                     match node {
                         Node::BlockQuote(..) => String::from("text-xl italic font-medium leading-relaxed text-gray-900 dark:text-white"),
-                        _ => String::from("text-gray-800 dark:text-gray-800 mt-1")
+                        _ => String::from("text-slate-500 dark:text-slate-400 mt-1")
                     }
                 }
             }
         }
         Node::Heading(value) => {
             match value.depth {
-                1 => String::from("text-4xl font-bold mb-3 mt-5"),
-                2 => String::from("text-3xl font-bold mb-3 mt-5"),
-                3 => String::from("text-2xl font-bold mb-3 mt-5"),
+                1 => String::from("text-4xl font-bold mb-3 mt-5 text-slate-900 dark:text-white"),
+                2 => String::from("text-3xl font-bold mb-3 mt-5 text-slate-900 dark:text-white"),
+                3 => String::from("text-2xl font-bold mb-3 mt-5 text-slate-900 dark:text-white"),
                 _ => String::from(""),
             }
         }
         Node::List(value) => {
             match value.start {
-                None => String::from("list-disc pl-5"),
-                Some(_) => String::from("list-decimal pl-5"),
+                None => String::from("list-disc pl-5 text-slate-500 dark:text-slate-400"),
+                Some(_) => String::from("list-decimal pl-5 text-slate-500 dark:text-slate-400"),
             }
         }
         Node::BlockQuote(..) => String::from("p-4 my-4 border-s-4 border-gray-300 bg-gray-50 dark:border-gray-500 dark:bg-gray-800"),
@@ -184,7 +184,7 @@ pub fn md_to_html(md: &Node, sup: Option<&Node>) -> Option<HTMLNode> {
                 children: vec![],
                 attributes: HashMap::from([
                     ("class", md_class(md, sup)),
-                    ("src", format!("root/{}", node.url.to_string())),
+                    ("src", format!("{}", node.url.to_string())),
                     ("alt", node.alt.to_string()),
                     ("title", match &node.title {
                         None => "".to_string(),

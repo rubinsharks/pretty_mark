@@ -19,9 +19,13 @@ pub fn headers_highlight() -> Vec<HTMLNode> {
         HTMLNode::from_attributes(HTMLTag::Script, HashMap::from([
             ("src", String::from("https://cdn.tailwindcss.com"))
         ])),
+        HTMLNode::from_attributes(HTMLTag::Script, HashMap::from([
+            ("src", String::from("https://flowbite.com/docs/flowbite.min.js?v=3.1.2a"))
+        ])),
     ])
 }
 
+/// 사용가능한 HTML Tag
 #[derive(Clone, Copy)]
 pub enum HTMLTag {
     P,
@@ -131,14 +135,16 @@ impl HTMLNode {
         let mut str = String::new();
         let tag = self.tag.tag();
         if !tag.is_empty() {
-            str.push_str(format!("<{}", self.tag.tag()).as_str());
-            for (key, value) in &self.attributes {
-                if !value.is_empty() {
-                    str.push_str(format!(" {}=", key).as_str());
-                    str.push_str(format!("\"{}\"",value).as_str());
+            if tag != "body" {
+                str.push_str(format!("<{}", self.tag.tag()).as_str());
+                for (key, value) in &self.attributes {
+                    if !value.is_empty() {
+                        str.push_str(format!(" {}=", key).as_str());
+                        str.push_str(format!("\"{}\"",value).as_str());
+                    }
                 }
+                str.push_str(">");
             }
-            str.push_str(">");
 
             if self.children.is_empty() {
                 str.push_str(format!("{}", self.value).as_str());
@@ -152,7 +158,9 @@ impl HTMLNode {
                 str.push_str("\n");
                 (0..depth).for_each(|x| str.push_str("\t"));
             }
-            str.push_str(format!("</{}>", self.tag.tag()).as_str());
+            if tag != "body" {
+                str.push_str(format!("</{}>", self.tag.tag()).as_str());
+            }
         } else {
             str.push_str(format!("{}", self.value).as_str());
         }

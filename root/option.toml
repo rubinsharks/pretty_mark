@@ -1,0 +1,10 @@
+[nav]
+home = "/"
+service.etc1 = "etc1"
+service.etc2 = "etc2"
+service.etc3 = "etc3"
+menu = "menu"
+end = "end"
+
+[theme]
+night = true

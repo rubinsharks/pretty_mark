@@ -8,3 +8,7 @@ end = "end"
 
 [theme]
 night = true
+
+[footer]
+title = "220022"
+sns.facebook = "Hey"

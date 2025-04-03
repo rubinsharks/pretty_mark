@@ -77,9 +77,9 @@ pub fn find_images(path: &Path) -> Result<Vec<PathBuf>, &'static str> {
     Ok(md_paths)
 }
 
-pub fn change_root(root: &str, path: &Path) -> PathBuf {
+pub fn change_root(root: &Path, path: &Path) -> PathBuf {
     let mut components: Vec<_> = path.components().collect();
     components.remove(0);
     let path: PathBuf = path.iter().skip(1).collect();
-    Path::new(root).join(path)
+    root.join(path)
 }

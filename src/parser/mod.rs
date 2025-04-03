@@ -13,7 +13,7 @@ use crate::parser::html::footer;
 use file::{change_root, find_images, find_md, find_option, read_dir_recursive};
 use html::{headers_highlight, HTMLNode, HTMLTag};
 use markdown::*;
-use toml::load_toml;
+use toml::{load_nav_from_toml, load_footer_from_toml};
 
 struct Page {
     path: String,
@@ -37,32 +37,40 @@ impl fmt::Debug for Page {
 }
 
 /// 해당 Path에 있는 폴더를 재귀로 분석해 html로 변환한다.
-pub fn make_pages(path: &Path) -> Result<(), &'static str> {
+pub fn make_pages(path: &Path, html_path: &Path) -> Result<(), &'static str> {
     // let path = Path::new("root/option.toml");
     // toml::load_toml(path);
     let page = read_dir_recursive(path)?;
     println!("{:?}", page);
-    make_page(&page)?;
+    make_page(html_path, &page)?;
     Ok(())
 }
 
 ///
-pub fn make_page(page: &Page) -> Result<(), &'static str> {
-    let _ = page_to_html("html", &page);
+pub fn make_page(html_path: &Path, page: &Page) -> Result<(), &'static str> {
+    println!("{:?}", page.path);
+    let _ = page_to_html(html_path, &page);
     for page in &page.pages {
-        make_page(page)?;
+        make_page(html_path, page)?;
     }
     Ok(())
 }
 
-pub fn page_to_html(root: &str, page: &Page) -> Result<(), &'static str> {
+pub fn page_to_html(root: &Path, page: &Page) -> Result<(), &'static str> {
     let path = Path::new(&page.path);
     let md = find_md(path)?;
     let images = find_images(path)?;
-    let option = find_option(path)?;
-    let toml = load_toml(option.as_path());
-    println!("111{:?}", toml);
-
+    let mut nav_html = "".to_string();
+    let mut footer_html = "".to_string();
+    match find_option(path) {
+        Ok(option) => {
+            nav_html = load_nav_from_toml(option.as_path()).unwrap_or_else(|_| "".to_string());
+            footer_html = load_footer_from_toml(option.as_path()).unwrap_or_else(|_| "".to_string());
+        }
+        Err(_) => {}
+    }
+    
+    println!("{:?}", page.path);
     let md_path = Path::new(&md);
 
     match fs::metadata(md_path) {
@@ -106,8 +114,13 @@ pub fn page_to_html(root: &str, page: &Page) -> Result<(), &'static str> {
         .ok_or("head write fails")?;
     file.write(format!("\n").as_bytes()).ok().ok_or("")?;
     file.write(format!("<body class=\"container mx-auto bg-white dark:bg-slate-900\">\n").as_bytes()).ok().ok_or("")?;
-    file.write(format!("{}", toml.as_str()).as_bytes()).ok().ok_or("")?;
+    if !nav_html.is_empty() {
+        file.write(format!("{}", nav_html.as_str()).as_bytes()).ok().ok_or("")?;
+    }
     file.write_all(html.as_bytes()).ok().ok_or("all fails")?;
+    if !footer_html.is_empty() {
+        file.write(format!("{}", footer_html.as_str()).as_bytes()).ok().ok_or("")?;
+    }
     file.write(format!("</body>").as_bytes()).ok().ok_or("")?;
 
     for image in images {

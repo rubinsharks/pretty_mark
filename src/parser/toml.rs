@@ -3,8 +3,35 @@ use std::fs::File;
 use std::io::Read;
 use std::path::{Display, Path};
 use toml_edit::{DocumentMut, value, Value, Item, Table};
+use std::collections::HashMap;
+use crate::parser::markdown::filter_attrs;
 
-pub fn load_nav_from_toml(path: &Path) -> Result<String, &'static str> {
+
+#[derive(Clone)]
+pub struct MDOption {
+    menus: Vec<Menu>,
+    themes: HashMap<String, ThemeValue>,
+    footer: Footer,
+}
+
+impl MDOption {
+    pub fn menus_to_html(&self) -> String {
+        menus_to_html(&self.menus, &Some(self.clone()))
+    }
+    
+    pub fn footer_to_html(&self) -> String {
+        footer_to_html(&self.footer, &Some(self.clone()))
+    }
+
+    pub fn is_night(&self) -> bool {
+        if let ThemeValue::Bool(is_night) = &self.themes["night"] {
+            return is_night.clone();
+        }
+        false
+    }
+}
+
+pub fn load_option_from_toml(path: &Path) -> Result<MDOption, &'static str> {
     let mut file = File::open(path).ok().ok_or("Failed to open the file")?;
 
     let mut config_str = String::new();
@@ -14,59 +41,73 @@ pub fn load_nav_from_toml(path: &Path) -> Result<String, &'static str> {
     let mut doc = config_str.parse::<DocumentMut>()
         .ok().ok_or("invalid doc")?;
 
+    let mut menus = vec![];
+    let mut themes = HashMap::new();
+    let mut footer = Footer { title: "".to_string(), snss: vec![] };
+    
     // 파일 순서대로 키를 접근
     for (key, value) in doc.as_table() {
         if key == "nav" {
             if let Item::Table(table) = value {
-                let menus = table_to_menus(table);
-                let html = menus_to_html(menus);
-                // println!("{:?}", html);
-                // for (key, value) in table {
-                //     println!("{} = {}", key, value);
-                // }
-                return Ok(html);
+                menus = table_to_menus(table);
+            }
+        } else if key == "theme" {
+            if let Item::Table(table) = value {
+                themes = table_to_themes(table);
+            }
+        } else if key == "footer" {
+            if let Item::Table(table) = value {
+                footer = table_to_footer(table);
             }
         }
     }
+
+    let option = MDOption {
+        menus,
+        themes,
+        footer,
+    };
     
-    Err("not found")
+    Ok(option)
 }
 
+#[derive(Clone)]
 struct Menu {
     name: String,
     path: String,
     dropdowns: Vec<DropDown>,
 }
 
+#[derive(Clone)]
 struct DropDown {
     name: String,
     path: String,
 }
 
-fn menus_to_html(menus: Vec<Menu>) -> String {
+fn menus_to_html(menus: &Vec<Menu>, md_option: &Option<MDOption>) -> String {
     let mut html = String::new();
-    html.push_str("<nav class=\"bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700\">");
+    html.push_str(&format!("<nav class=\"{}\">", filter_attrs("bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700", md_option)));
     html.push_str(
-        "<div class=\"max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4\">",
+        &format!("<div class=\"{}\">", filter_attrs("max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4", md_option))
     );
-    html.push_str("<div class=\"hidden w-full md:block md:w-auto\" id=\"navbar-dropdown\">");
-    html.push_str("<ul class=\"flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700\">");
+    html.push_str(&format!("<div class=\"{}\" id=\"navbar-dropdown\">", filter_attrs("hidden w-full md:block md:w-auto", md_option)));
+    html.push_str(&format!("<ul class=\"{}\">", filter_attrs("flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700", md_option)));
     for menu in menus {
         html.push_str("<li>");
         if menu.dropdowns.is_empty() {
-            html.push_str(format!("<a href=\"{}\" class=\"block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent\" aria-current=\"page\">{}</a>", menu.path, menu.name).as_str());
+            html.push_str(&format!("<a href=\"{}\" class=\"{}\" aria-current=\"page\">{}</a>", menu.path, filter_attrs("block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent", md_option), menu.name));
         } else {
-            html.push_str(format!("<button id=\"dropdownNavbarLink\" data-dropdown-toggle=\"dropdownNavbar\" class=\"flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent\">{}", menu.name).as_str());
+            html.push_str(&format!("<button id=\"dropdownNavbarLink\" data-dropdown-toggle=\"dropdownNavbar\" class=\"{}\">{}", filter_attrs("flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent", md_option), menu.name));
             html.push_str("<svg class=\"w-2.5 h-2.5 ms-2.5\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 10 6\">");
             html.push_str("<path stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m1 1 4 4 4-4\"/>");
             html.push_str("</svg>");
             html.push_str("</button>");
             // dropdown
-            html.push_str("<div id=\"dropdownNavbar\" class=\"z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600\">");
-            html.push_str("<ul class=\"py-2 text-sm text-gray-700 dark:text-gray-400\" aria-labelledby=\"dropdownLargeButton\">");
-            for dropdown in menu.dropdowns {
+            html.push_str(&format!("<div id=\"dropdownNavbar\" class=\"{}\">", filter_attrs("z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600", md_option)));
+            html.push_str(&format!("<ul class=\"{}\" aria-labelledby=\"dropdownLargeButton\">", filter_attrs("py-2 text-sm text-gray-700 dark:text-gray-400", md_option)));
+            for dropdown in &menu.dropdowns {
                 html.push_str("<li>");
-                html.push_str(format!("<a href=\"{}\" class=\"block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white\">{}</a>", dropdown.path, dropdown.name).as_str());
+                html.push_str(&format!("<a href=\"{}\" class=\"{}\">{}</a>", dropdown.path, filter_attrs("block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white", md_option), dropdown.name));
                 html.push_str("</li>");
             }
             html.push_str("</ul>");
@@ -130,36 +171,13 @@ fn table_to_dropdowns(table: &Table) -> Vec<DropDown> {
     dropdowns
 }
 
-pub fn load_footer_from_toml(path: &Path) -> Result<String, &'static str> {
-    let mut file = File::open(path).ok().ok_or("Failed to open the file")?;
-
-    let mut config_str = String::new();
-    file.read_to_string(&mut config_str)
-        .ok().ok_or("Failed to read the file")?;
-
-    let mut doc = config_str.parse::<DocumentMut>()
-        .ok().ok_or("invalid doc")?;
-
-    // 파일 순서대로 키를 접근
-    for (key, value) in doc.as_table() {
-        if key == "footer" {
-            if let Item::Table(table) = value {
-                let footer = table_to_footer(table);
-                let html = footer_to_html(footer);
-                println!("{:?}", html);
-                return Ok(html);
-            }
-        }
-    }
-
-    Err("not found")
-}
-
+#[derive(Clone)]
 struct Footer {
     title: String,
     snss: Vec<FooterSNS>,
 }
 
+#[derive(Clone)]
 struct FooterSNS {
     name: String,
     path: String
@@ -198,17 +216,17 @@ impl FooterSNS {
     }
 }
             
-fn footer_to_html(footer: Footer) -> String {
+fn footer_to_html(footer: &Footer, md_option: &Option<MDOption>) -> String {
     let mut html = String::new();
 
-    html.push_str("<footer class=\"bg-white dark:bg-gray-900\">");
-    html.push_str("<div class=\"mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8\">");
-    html.push_str("<div class=\"sm:flex sm:items-center sm:justify-between\">");
-    html.push_str("<span class=\"text-sm text-gray-500 sm:text-center dark:text-gray-400\">© 2025 Prema. All Rights Reserved.");
+    html.push_str(&format!("<footer class=\"{}\">", filter_attrs("bg-white dark:bg-gray-900", md_option)));
+    html.push_str(&format!("<div class=\"{}\">", filter_attrs("mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8", md_option)));
+    html.push_str(&format!("<div class=\"{}\">", filter_attrs("sm:flex sm:items-center sm:justify-between", md_option)));
+    html.push_str(&format!("<span class=\"{}\">© 2025 Prema. All Rights Reserved.", filter_attrs("text-sm text-gray-500 sm:text-center dark:text-gray-400", md_option)));
     html.push_str("</span>");
-    html.push_str("<div class=\"flex mt-4 sm:justify-center sm:mt-0\">");
-    for sns in footer.snss {
-        html.push_str(format!("<a href={} class=\"text-gray-500 hover:text-gray-900 dark:hover:text-white\">", sns.path).as_str());
+    html.push_str(&format!("<div class=\"{}\">", filter_attrs("flex mt-4 sm:justify-center sm:mt-0", md_option)));
+    for sns in &footer.snss {
+        html.push_str(&format!("<a href={} class=\"{}\">", sns.path, filter_attrs("text-gray-500 hover:text-gray-900 dark:hover:text-white", md_option)));
         html.push_str(sns.svg_html());
         html.push_str("</a>");
     }
@@ -256,4 +274,26 @@ fn table_to_snss(table: &Table) -> Vec<FooterSNS> {
         }
     }
     snss
+}
+
+#[derive(Clone)]    
+pub enum ThemeValue {
+    String(String),
+    Bool(bool),
+    Float(f64),
+}
+
+fn table_to_themes(table: &Table) -> HashMap<String, ThemeValue> {
+    let mut hash_map: HashMap<String, ThemeValue> = HashMap::new();
+    
+    for (key, value) in table {
+        if let Item::Value(Value::Boolean(bool)) = value {
+            hash_map.insert(key.to_string(), ThemeValue::Bool(bool.value().clone()));
+        } else if let Item::Value(Value::String(str)) = value {
+            hash_map.insert(key.to_string(), ThemeValue::String(str.value().clone()));
+        } else {
+            
+        }
+    }
+    hash_map
 }

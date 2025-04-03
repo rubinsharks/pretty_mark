@@ -1,27 +1,29 @@
 use std::collections::HashMap;
 use markdown::mdast::Node;
+use crate::parser::toml::MDOption;
+use crate::parser::markdown::filter_attrs;
 
-pub fn headers_highlight() -> Vec<HTMLNode> {
+pub fn headers_highlight(md_option: &Option<MDOption>) -> Vec<HTMLNode> {
     Vec::from([
         HTMLNode::from_attributes(HTMLTag::Link, HashMap::from([
             ("rel", String::from("stylesheet")),
             ("href", String::from("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css")),
-        ])),
+        ]), md_option),
         HTMLNode::from_attributes(HTMLTag::Script, HashMap::from([
             ("src", String::from("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js")),
             ("value", String::from("")),
-        ])),
+        ]), md_option),
         HTMLNode::from_attributes(HTMLTag::Script, HashMap::from([
             ("src", String::from("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js")),
             ("value", String::from("")),
-        ])),
-        HTMLNode::from_value(HTMLTag::Script, String::from("hljs.highlightAll();")),
+        ]), md_option),
+        HTMLNode::from_value(HTMLTag::Script, String::from("hljs.highlightAll();"), md_option),
         HTMLNode::from_attributes(HTMLTag::Script, HashMap::from([
             ("src", String::from("https://cdn.tailwindcss.com"))
-        ])),
+        ]), md_option),
         HTMLNode::from_attributes(HTMLTag::Script, HashMap::from([
             ("src", String::from("https://flowbite.com/docs/flowbite.min.js?v=3.1.2a"))
-        ])),
+        ]), md_option),
     ])
 }
 
@@ -78,56 +80,56 @@ pub struct HTMLNode {
 }
 
 impl HTMLNode {
-    pub fn new(tag: HTMLTag) -> HTMLNode {
+    pub fn new(tag: HTMLTag, md_option: &Option<MDOption>) -> HTMLNode {
         HTMLNode {
             tag,
             children: Vec::new(),
             attributes: HashMap::from([
-                ("class", String::from(tag.class())),
+                ("class", String::from(tag.class(md_option))),
             ]),
             value: String::from(""),
         }
     }
 
-    pub fn from_attributes(tag: HTMLTag, attributes: HashMap<&'static str, String>) -> HTMLNode {
+    pub fn from_attributes(tag: HTMLTag, attributes: HashMap<&'static str, String>, md_option: &Option<MDOption>) -> HTMLNode {
         HTMLNode {
             tag,
             attributes,
-            ..HTMLNode::new(tag)
+            ..HTMLNode::new(tag, md_option)
         }
     }
 
-    pub fn from_value(tag: HTMLTag, value: String) -> HTMLNode {
+    pub fn from_value(tag: HTMLTag, value: String, md_option: &Option<MDOption>) -> HTMLNode {
         HTMLNode {
             tag,
             value,
-            ..HTMLNode::new(tag)
+            ..HTMLNode::new(tag, md_option)
         }
     }
 
-    pub fn from_children(tag: HTMLTag, children: Vec<HTMLNode>) -> HTMLNode {
+    pub fn from_children(tag: HTMLTag, children: Vec<HTMLNode>, md_option: &Option<MDOption>) -> HTMLNode {
         HTMLNode {
             tag,
             children,
-            ..HTMLNode::new(tag)
+            ..HTMLNode::new(tag, md_option)
         }
     }
 
-    pub fn from_attributes_children(tag: HTMLTag, attributes: HashMap<&'static str, String>, children: Vec<HTMLNode>) -> HTMLNode {
+    pub fn from_attributes_children(tag: HTMLTag, attributes: HashMap<&'static str, String>, children: Vec<HTMLNode>, md_option: &Option<MDOption>) -> HTMLNode {
         HTMLNode {
             tag,
             children,
             attributes,
-            ..HTMLNode::new(tag)
+            ..HTMLNode::new(tag, md_option)
         }
     }
 
-    pub fn from_attributes_value(tag: HTMLTag, attributes: HashMap<&'static str, String>, value: String) -> HTMLNode {
+    pub fn from_attributes_value(tag: HTMLTag, attributes: HashMap<&'static str, String>, value: String, md_option: &Option<MDOption>) -> HTMLNode {
         HTMLNode {
             tag,
             attributes,
             value,
-            ..HTMLNode::new(tag)
+            ..HTMLNode::new(tag, md_option)
         }
     }
 
@@ -170,10 +172,10 @@ impl HTMLNode {
 
 impl HTMLTag {
 
-    pub fn class(&self) -> &'static str {
+    pub fn class(&self, md_option: &Option<MDOption>) -> String {
         match self {
-            HTMLTag::Body => "container mx-auto bg-white dark:bg-black",
-            _ => ""
+            HTMLTag::Body => filter_attrs("container mx-auto bg-white dark:bg-black", md_option),
+            _ => "".to_string()
         }
     }
     pub fn tag(&self) -> &'static str {
@@ -204,16 +206,16 @@ impl HTMLTag {
     }
 }
 
-pub fn footer() -> HTMLNode {
+pub fn footer(md_option: &Option<MDOption>) -> HTMLNode {
     HTMLNode::from_attributes_children(HTMLTag::Footer, HashMap::from([
-        ("class", String::from("bg-white dark:bg-gray-900")),
+        ("class", filter_attrs("bg-white dark:bg-gray-900", md_option)),
     ]), vec![
         HTMLNode::from_attributes_children(HTMLTag::Div, HashMap::from([
-            ("class", String::from("px-4 py-6 bg-gray-100 dark:bg-gray-700 md:flex md:items-center md:justify-between")),
+            ("class", filter_attrs("px-4 py-6 bg-gray-100 dark:bg-gray-700 md:flex md:items-center md:justify-between", md_option)),
         ]), vec![
             HTMLNode::from_attributes_value(HTMLTag::Span, HashMap::from([
-                ("class", String::from("text-sm text-gray-500 dark:text-gray-300 sm:text-center")),
-            ]), "Auto generated by <a href=\"https://rubinsharks.github.io\">rubinsharks.github.io</a>".to_string())
-        ])
-    ])
+                ("class", filter_attrs("text-sm text-gray-500 dark:text-gray-300 sm:text-center", md_option)),
+            ]), "Auto generated by <a href=\"https://rubinsharks.github.io\">rubinsharks.github.io</a>".to_string(), md_option)
+        ], md_option)
+    ], md_option)
 }

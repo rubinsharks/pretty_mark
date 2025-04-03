@@ -7,7 +7,7 @@ menu = "menu"
 end = "end"
 
 [theme]
-night = true
+night = false
 
 [footer]
 title = "220022"

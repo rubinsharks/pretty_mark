@@ -5,6 +5,7 @@ mod toml;
 
 use std::fmt::Formatter;
 use std::fs::File;
+use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::{fmt, fs, io};
@@ -13,7 +14,7 @@ use crate::parser::html::footer;
 use file::{change_root, find_images, find_md, find_option, read_dir_recursive};
 use html::{headers_highlight, HTMLNode, HTMLTag};
 use markdown::*;
-use toml::{load_nav_from_toml, load_footer_from_toml};
+use toml::{load_option_from_toml, MDOption};
 
 struct Page {
     path: String,
@@ -42,32 +43,45 @@ pub fn make_pages(path: &Path, html_path: &Path) -> Result<(), &'static str> {
     // toml::load_toml(path);
     let page = read_dir_recursive(path)?;
     println!("{:?}", page);
-    make_page(html_path, &page)?;
+    make_page(html_path, &page, &None)?;
     Ok(())
 }
 
 ///
-pub fn make_page(html_path: &Path, page: &Page) -> Result<(), &'static str> {
+pub fn make_page(html_path: &Path, page: &Page, md_sup_option: &Option<MDOption>) -> Result<(), &'static str> {
     println!("{:?}", page.path);
-    let _ = page_to_html(html_path, &page);
+    let md_option = page_to_html(html_path, &page, md_sup_option).ok().ok_or("")?;
     for page in &page.pages {
-        make_page(html_path, page)?;
+        make_page(html_path, page, &md_option)?;
     }
     Ok(())
 }
 
-pub fn page_to_html(root: &Path, page: &Page) -> Result<(), &'static str> {
+pub fn page_to_html(root: &Path, page: &Page, md_sup_option: &Option<MDOption>) -> Result<Option<MDOption>, &'static str> {
     let path = Path::new(&page.path);
     let md = find_md(path)?;
     let images = find_images(path)?;
-    let mut nav_html = "".to_string();
-    let mut footer_html = "".to_string();
+    let mut md_option: Option<MDOption> = None;
+    
     match find_option(path) {
         Ok(option) => {
-            nav_html = load_nav_from_toml(option.as_path()).unwrap_or_else(|_| "".to_string());
-            footer_html = load_footer_from_toml(option.as_path()).unwrap_or_else(|_| "".to_string());
+            match load_option_from_toml(option.as_path()) {
+                Ok(option) => {
+                    md_option = Some(option);
+                }
+                Err(err) => {
+                    if let Some(md_sup_option) = md_sup_option {
+                        md_option = Some(md_sup_option.clone());
+                    }
+                    println!("{}", err);
+                }
+            }
         }
-        Err(_) => {}
+        Err(_) => {
+            if let Some(md_sup_option) = md_sup_option {
+                md_option = Some(md_sup_option.clone());
+            }
+        }
     }
     
     println!("{:?}", page.path);
@@ -86,10 +100,10 @@ pub fn page_to_html(root: &Path, page: &Page) -> Result<(), &'static str> {
     let html = match parser(md_path) {
         Ok(node) => {
             println!("{:#?}", node);
-            match md_to_html(&node, None) {
+            match md_to_html(&node, None, &md_option) {
                 None => String::from("1"),
                 Some(mut node) => {
-                    node.children.push(footer());
+                    node.children.push(footer(&md_option));
                     node.html(0)
                 }
             }
@@ -102,8 +116,8 @@ pub fn page_to_html(root: &Path, page: &Page) -> Result<(), &'static str> {
     let html_file_name = md_path.file_stem().unwrap().to_str().unwrap().to_string() + ".html";
     let html_path = new_path.join(html_file_name);
 
-    let mut head = HTMLNode::new(HTMLTag::Head);
-    let headers = headers_highlight();
+    let mut head = HTMLNode::new(HTMLTag::Head, &md_option);
+    let headers = headers_highlight(&md_option);
     head.children = headers;
 
     let _ = fs::create_dir(new_path);
@@ -113,13 +127,13 @@ pub fn page_to_html(root: &Path, page: &Page) -> Result<(), &'static str> {
         .ok()
         .ok_or("head write fails")?;
     file.write(format!("\n").as_bytes()).ok().ok_or("")?;
-    file.write(format!("<body class=\"container mx-auto bg-white dark:bg-slate-900\">\n").as_bytes()).ok().ok_or("")?;
-    if !nav_html.is_empty() {
-        file.write(format!("{}", nav_html.as_str()).as_bytes()).ok().ok_or("")?;
+    file.write(format!("<body class=\"{}\">\n", filter_attrs("container mx-auto bg-white dark:bg-slate-900", &md_option)).as_bytes()).ok().ok_or("")?;
+    if let Some(option) = &md_option {
+        file.write(format!("{}", option.menus_to_html().as_str()).as_bytes()).ok().ok_or("")?;
     }
     file.write_all(html.as_bytes()).ok().ok_or("all fails")?;
-    if !footer_html.is_empty() {
-        file.write(format!("{}", footer_html.as_str()).as_bytes()).ok().ok_or("")?;
+    if let Some(option) = &md_option {
+        file.write(format!("{}", option.footer_to_html().as_str()).as_bytes()).ok().ok_or("")?;
     }
     file.write(format!("</body>").as_bytes()).ok().ok_or("")?;
 
@@ -127,5 +141,5 @@ pub fn page_to_html(root: &Path, page: &Page) -> Result<(), &'static str> {
         let _ = fs::copy(image.clone(), new_path.join(image.file_name().unwrap()));
     }
 
-    Ok(())
+    Ok(md_option)
 }

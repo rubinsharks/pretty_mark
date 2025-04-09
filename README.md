@@ -62,6 +62,7 @@ prema html {root_path} {html_path}
 created는 아래와 같은 포맷으로 작성하면 html에 자동으로 작성일이 추가됩니다.
 tag의 경우 나중에 tag list를 통해 tag별로 게시물을 확인할 수 있습니다.
 ``` toml
+[basic]
 created = "yyyy-MM-dd hh:mm:ss"
 tag = "food"
 ```

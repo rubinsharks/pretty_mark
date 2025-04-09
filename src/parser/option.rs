@@ -271,12 +271,13 @@ impl FooterSNS {
     }
 }
 
+/// z-10이 footer의 height
 fn footer_to_html(footer: &Footer, md_option: &Option<MDOption>) -> String {
     let mut html = String::new();
 
-    html.push_str(&format!("<footer class=\"{}\">", filter_attrs("bg-white dark:bg-gray-900", md_option)));
-    html.push_str(&format!("<div class=\"{}\">", filter_attrs("mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8", md_option)));
-    html.push_str(&format!("<div class=\"{}\">", filter_attrs("sm:flex sm:items-center sm:justify-between", md_option)));
+    html.push_str(&format!("<footer class=\"{}\">", filter_attrs("fixed bottom-0 left-0 z-10 w-full p-6 bg-white border-t border-gray-200 shadow-sm md:flex md:items-center md:justify-between md:p-6 dark:bg-gray-800 dark:border-gray-600", md_option)));
+    // html.push_str(&format!("<div class=\"{}\">", filter_attrs("mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8", md_option)));
+    // html.push_str(&format!("<div class=\"{}\">", filter_attrs("sm:flex sm:items-center sm:justify-between", md_option)));
     html.push_str(&format!("<span class=\"{}\">{}", filter_attrs("text-sm text-gray-500 sm:text-center dark:text-gray-400", md_option), footer.title));
     html.push_str("</span>");
     html.push_str(&format!("<div class=\"{}\">", filter_attrs("flex mt-4 sm:justify-center sm:mt-0", md_option)));
@@ -286,8 +287,8 @@ fn footer_to_html(footer: &Footer, md_option: &Option<MDOption>) -> String {
         html.push_str("</a>");
     }
     html.push_str("</div>");
-    html.push_str("</div>");
-    html.push_str("</div>");
+    // html.push_str("</div>");
+    // html.push_str("</div>");
     html.push_str("</footer>");
     html
 }

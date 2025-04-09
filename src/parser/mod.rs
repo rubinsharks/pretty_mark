@@ -127,7 +127,7 @@ pub fn page_to_html(root: &Path, page: &Page, md_sup_option: &Option<MDOption>) 
             match md_to_html(&node, None, &md_option) {
                 None => String::from("1"),
                 Some(mut node) => {
-                    node.children.push(footer(&md_option));
+                    // node.children.push(footer(&md_option));
                     node.html(0)
                 }
             }

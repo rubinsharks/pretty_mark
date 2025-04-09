@@ -303,7 +303,7 @@ fn table_to_footer(table: &Table) -> Footer {
             footer.snss = snss;
         } else if let Item::Value(Value::String(path)) = value {
             if key == "title" {
-                footer.title = path.to_string();
+                footer.title = path.to_string().trim().trim_matches('"').to_string();
             }
         } else {
         }

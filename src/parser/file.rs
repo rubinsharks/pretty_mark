@@ -1,12 +1,18 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use crate::parser::Page;
+use crate::parser::option::load_option;
 
 /// read files without directory file recursively
 pub fn read_dir_recursive(path: &Path) -> Result<Page, &'static str> {
     let paths = fs::read_dir(path).ok().ok_or("")?;
     let path_string = path.to_str().unwrap().to_string();
-    let mut page = Page { path: path_string, pages: vec![] };
+    let option = match load_option(path) {
+        Ok(option) => Some(option),
+        Err(_) => None,
+    };
+    
+    let mut page = Page { path: path_string, option, pages: vec![] };
     for path in paths.filter_map(|x| x.ok()) {
         match read_dir_recursive(path.path().as_path()) {
             Ok(sub_page) => { page.pages.push(sub_page) }
@@ -33,26 +39,6 @@ pub fn find_md(path: &Path) -> Result<PathBuf, &'static str> {
     }
     match md_paths.len() {
         1 => Ok(md_paths.first().unwrap().to_path_buf()),
-        0 => Err("no md file detected"),
-        _ => Err("multiple md files detected")
-    }
-}
-
-pub fn find_option(path: &Path) -> Result<PathBuf, &'static str> {
-    let paths = fs::read_dir(path).ok().ok_or("")?;
-    let mut option_paths: Vec<PathBuf> = vec![];
-    for path in paths.filter_map(|x| x.ok()).map(|x| x.path()) {
-        match path.extension() {
-            None => { }
-            Some(extension) => {
-                if extension == "toml" {
-                    option_paths.push(path);
-                }
-            }
-        }
-    }
-    match option_paths.len() {
-        1 => Ok(option_paths.first().unwrap().to_path_buf()),
         0 => Err("no md file detected"),
         _ => Err("multiple md files detected")
     }

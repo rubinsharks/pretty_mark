@@ -1,33 +1,47 @@
-
+use std::fs;
+use std::path::{Path, PathBuf};
+use crate::parser::Page;
 use std::fs::File;
 use std::io::Read;
-use std::path::{Display, Path};
 use toml_edit::{DocumentMut, value, Value, Item, Table};
 use std::collections::HashMap;
 use crate::parser::markdown::filter_attrs;
 
-
-#[derive(Clone)]
-pub struct MDOption {
-    menus: Vec<Menu>,
-    themes: HashMap<String, ThemeValue>,
-    footer: Footer,
+pub fn load_option(path: &Path) -> Result<MDOption, &'static str> {
+    match find_option(path) {
+        Ok(option) => {
+            match load_option_from_toml(option.as_path()) {
+                Ok(option) => {
+                    return Ok(option);
+                }
+                Err(err) => {
+                    return Err(err);
+                }
+            }
+        }
+        Err(_) => {
+            Err("no option file detected")
+        }
+    }
 }
 
-impl MDOption {
-    pub fn menus_to_html(&self) -> String {
-        menus_to_html(&self.menus, &Some(self.clone()))
-    }
-    
-    pub fn footer_to_html(&self) -> String {
-        footer_to_html(&self.footer, &Some(self.clone()))
-    }
-
-    pub fn is_night(&self) -> bool {
-        if let ThemeValue::Bool(is_night) = &self.themes["night"] {
-            return is_night.clone();
+pub fn find_option(path: &Path) -> Result<PathBuf, &'static str> {
+    let paths = fs::read_dir(path).ok().ok_or("")?;
+    let mut option_paths: Vec<PathBuf> = vec![];
+    for path in paths.filter_map(|x| x.ok()).map(|x| x.path()) {
+        match path.extension() {
+            None => { }
+            Some(extension) => {
+                if extension == "toml" {
+                    option_paths.push(path);
+                }
+            }
         }
-        false
+    }
+    match option_paths.len() {
+        1 => Ok(option_paths.first().unwrap().to_path_buf()),
+        0 => Err("no md file detected"),
+        _ => Err("multiple md files detected")
     }
 }
 
@@ -44,7 +58,8 @@ pub fn load_option_from_toml(path: &Path) -> Result<MDOption, &'static str> {
     let mut menus = vec![];
     let mut themes = HashMap::new();
     let mut footer = Footer { title: "".to_string(), snss: vec![] };
-    
+    let mut basic = Basic { created: "".to_string(), tag: "".to_string() };
+
     // 파일 순서대로 키를 접근
     for (key, value) in doc.as_table() {
         if key == "nav" {
@@ -59,6 +74,10 @@ pub fn load_option_from_toml(path: &Path) -> Result<MDOption, &'static str> {
             if let Item::Table(table) = value {
                 footer = table_to_footer(table);
             }
+        } else if key == "basic" {
+            if let Item::Table(table) = value {
+                basic = table_to_basic(table);
+            }
         }
     }
 
@@ -66,9 +85,39 @@ pub fn load_option_from_toml(path: &Path) -> Result<MDOption, &'static str> {
         menus,
         themes,
         footer,
+        basic,
     };
-    
+
     Ok(option)
+}
+
+#[derive(Clone)]
+pub struct MDOption {
+    pub menus: Vec<Menu>,
+    pub themes: HashMap<String, ThemeValue>,
+    pub footer: Footer,
+    pub basic: Basic,
+}
+
+impl MDOption {
+    pub fn menus_to_html(&self) -> String {
+        menus_to_html(&self.menus, &Some(self.clone()))
+    }
+
+    pub fn footer_to_html(&self) -> String {
+        footer_to_html(&self.footer, &Some(self.clone()))
+    }
+
+    pub fn is_night(&self) -> bool {
+        if let Some(ThemeValue::Bool(is_night)) = self.themes.get("night") {
+            return is_night.clone();
+        }
+        false
+    }
+
+    pub fn tag(&self) -> &String {
+        &self.basic.tag
+    }
 }
 
 #[derive(Clone)]
@@ -172,13 +221,19 @@ fn table_to_dropdowns(table: &Table) -> Vec<DropDown> {
 }
 
 #[derive(Clone)]
-struct Footer {
+pub struct Basic {
+    created: String,
+    pub tag: String,
+}
+
+#[derive(Clone)]
+pub struct Footer {
     title: String,
     snss: Vec<FooterSNS>,
 }
 
 #[derive(Clone)]
-struct FooterSNS {
+pub struct FooterSNS {
     name: String,
     path: String
 }
@@ -215,14 +270,14 @@ impl FooterSNS {
         }
     }
 }
-            
+
 fn footer_to_html(footer: &Footer, md_option: &Option<MDOption>) -> String {
     let mut html = String::new();
 
     html.push_str(&format!("<footer class=\"{}\">", filter_attrs("bg-white dark:bg-gray-900", md_option)));
     html.push_str(&format!("<div class=\"{}\">", filter_attrs("mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8", md_option)));
     html.push_str(&format!("<div class=\"{}\">", filter_attrs("sm:flex sm:items-center sm:justify-between", md_option)));
-    html.push_str(&format!("<span class=\"{}\">© 2025 Prema. All Rights Reserved.", filter_attrs("text-sm text-gray-500 sm:text-center dark:text-gray-400", md_option)));
+    html.push_str(&format!("<span class=\"{}\">{}", filter_attrs("text-sm text-gray-500 sm:text-center dark:text-gray-400", md_option), footer.title));
     html.push_str("</span>");
     html.push_str(&format!("<div class=\"{}\">", filter_attrs("flex mt-4 sm:justify-center sm:mt-0", md_option)));
     for sns in &footer.snss {
@@ -285,15 +340,33 @@ pub enum ThemeValue {
 
 fn table_to_themes(table: &Table) -> HashMap<String, ThemeValue> {
     let mut hash_map: HashMap<String, ThemeValue> = HashMap::new();
-    
+
     for (key, value) in table {
         if let Item::Value(Value::Boolean(bool)) = value {
             hash_map.insert(key.to_string(), ThemeValue::Bool(bool.value().clone()));
         } else if let Item::Value(Value::String(str)) = value {
             hash_map.insert(key.to_string(), ThemeValue::String(str.value().clone()));
         } else {
-            
+
         }
     }
     hash_map
+}
+
+fn table_to_basic(table: &Table) -> Basic {
+    let mut basic = Basic {
+        created: "".to_string(),
+        tag: "".to_string(),
+    };
+    for (key, value) in table {
+        if let Item::Value(Value::String(path)) = value {
+            if key == "created" {
+                basic.created = path.to_string().trim().trim_matches('"').to_string();
+            } else if key == "tag" {
+                basic.tag = path.to_string().trim().trim_matches('"').to_string();
+            }
+        } else {
+        }
+    }
+    basic
 }

@@ -12,3 +12,7 @@ night = false
 [footer]
 title = "220022"
 sns.facebook = "Hey"
+
+[basic]
+created = "2025-01-01 22:10:23"
+tag = "root"

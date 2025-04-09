@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use markdown::mdast::Node;
-use crate::parser::toml::MDOption;
+use crate::parser::option::MDOption;
 use crate::parser::markdown::filter_attrs;
 
 pub fn headers_highlight(md_option: &Option<MDOption>) -> Vec<HTMLNode> {

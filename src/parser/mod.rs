@@ -1,25 +1,48 @@
 mod file;
 mod html;
 mod markdown;
-mod toml;
+mod option;
 
 use std::fmt::Formatter;
 use std::fs::File;
-use std::collections::HashMap;
+use std::collections::{HashSet, HashMap};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::{fmt, fs, io};
 
 use crate::parser::html::footer;
-use file::{change_root, find_images, find_md, find_option, read_dir_recursive};
+use file::{change_root, find_images, find_md, read_dir_recursive};
 use html::{headers_highlight, HTMLNode, HTMLTag};
 use markdown::*;
-use toml::{load_option_from_toml, MDOption};
+use option::{MDOption, find_option, load_option_from_toml};
 
 struct Page {
     path: String,
+    option: Option<MDOption>,
     pages: Vec<Page>,
 }
+
+impl Page {
+    fn collect_tags(&self) -> HashSet<String> {
+        let mut tags = HashSet::new();
+
+        // 현재 페이지의 태그를 추가
+        if let Some(option) = &self.option {
+            if option.basic.tag != "" {
+                tags.insert(option.basic.tag.clone());
+            }
+        }
+
+        // 하위 페이지들을 재귀적으로 탐색하여 태그 수집
+        for page in &self.pages {
+            let sub_page_tags = page.collect_tags();
+            tags.extend(sub_page_tags);  // 하위 페이지에서 수집된 태그를 추가
+        }
+
+        tags
+    }
+}
+
 
 impl fmt::Display for Page {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -42,7 +65,9 @@ pub fn make_pages(path: &Path, html_path: &Path) -> Result<(), &'static str> {
     // let path = Path::new("root/option.toml");
     // toml::load_toml(path);
     let page = read_dir_recursive(path)?;
+    let tags = page.collect_tags();
     println!("{:?}", page);
+    println!("{:?}", tags);
     make_page(html_path, &page, &None)?;
     Ok(())
 }
@@ -99,7 +124,6 @@ pub fn page_to_html(root: &Path, page: &Page, md_sup_option: &Option<MDOption>) 
 
     let html = match parser(md_path) {
         Ok(node) => {
-            println!("{:#?}", node);
             match md_to_html(&node, None, &md_option) {
                 None => String::from("1"),
                 Some(mut node) => {

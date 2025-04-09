@@ -5,8 +5,8 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use crate::parser::toml::ThemeValue;
-use crate::parser::toml::MDOption;
+use crate::parser::option::ThemeValue;
+use crate::parser::option::MDOption;
 
 pub fn parser(path: &Path) -> Result<Node, &'static str> {
     let mut file = File::open(&path).ok().ok_or("open fails")?;

@@ -137,8 +137,8 @@ pub fn page_to_html(root: &Path, page: &Page, md_sup_option: &Option<MDOption>) 
 
     let new_path = change_root(root, path);
     let new_path = Path::new(&new_path);
-    let html_file_name = md_path.file_stem().unwrap().to_str().unwrap().to_string() + ".html";
-    let html_path = new_path.join(html_file_name);
+    // let html_file_name = md_path.file_stem().unwrap().to_str().unwrap().to_string() + ".html";
+    let html_path = new_path.join("index.html");
 
     let mut head = HTMLNode::new(HTMLTag::Head, &md_option);
     let headers = headers_highlight(&md_option);

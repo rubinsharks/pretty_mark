@@ -12,3 +12,4 @@ license = "MIT"
 [dependencies]
 markdown = "1.0.0-alpha.23"
 toml_edit = "0.22.24"
+tiny_http = "0.12"

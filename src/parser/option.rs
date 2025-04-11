@@ -172,13 +172,13 @@ fn menus_to_html(menus: &Vec<Menu>, md_option: &Option<MDOption>) -> String {
         if menu.dropdowns.is_empty() {
             html.push_str(&format!("<a href=\"{}\" class=\"{}\" aria-current=\"page\">{}</a>", menu.path, filter_attrs("block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent", md_option), menu.name));
         } else {
-            html.push_str(&format!("<button id=\"dropdownNavbarLink\" data-dropdown-toggle=\"dropdownNavbar\" class=\"{}\">{}", filter_attrs("flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent", md_option), menu.name));
+            html.push_str(&format!(r#"<button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar-{}" class="{}">{}"#, menu.name, filter_attrs("flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent", md_option), menu.name));
             html.push_str("<svg class=\"w-2.5 h-2.5 ms-2.5\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 10 6\">");
             html.push_str("<path stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m1 1 4 4 4-4\"/>");
             html.push_str("</svg>");
             html.push_str("</button>");
             // dropdown
-            html.push_str(&format!("<div id=\"dropdownNavbar\" class=\"{}\">", filter_attrs("z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600", md_option)));
+            html.push_str(&format!(r#"<div id="dropdownNavbar-{}" class="{}">"#, menu.name, filter_attrs("z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600", md_option)));
             html.push_str(&format!("<ul class=\"{}\" aria-labelledby=\"dropdownLargeButton\">", filter_attrs("py-2 text-sm text-gray-700 dark:text-gray-400", md_option)));
             for dropdown in &menu.dropdowns {
                 html.push_str("<li>");

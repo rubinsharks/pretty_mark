@@ -16,7 +16,8 @@
 
 [Google](https://google.com "google link")
 ![Alt text](image.jpeg "Optional title")
-[Link](rust/rust.html "")
+[러스트](language/rust "러스트")
+[Refer](refer "러스트")
 
 ``` rust
 fn main() {

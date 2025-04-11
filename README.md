@@ -36,14 +36,23 @@ theme의 경우 설정되어있지 않으면 상위theme를 따라가며 상위�
 md 파일은 한 directory에 반드시 1개만 있어야 하며 파일명은 상관 없음
 image파일은 jpg, jpeg, png만 지원
 
-### 페이지를 링크하는 법
-``` markdown
-[Link](rust "")
-```
+### 타이틀
+여기서는 Heading(#, ##, ...)이 있는 맨 첫줄을 타이틀로 인식합니다. 타이틀은 태그에 해당하는 리스트에서 보여질때 사용됩니다.
 
 ### 원리
 디렉토리 하나를 하나의 페이지로 보고 있습니다.
 디렉토리 하나에 하나의 md파일이 반드시 존재해야 하며 이미지가 있을 경우 이미지 파일들이 해당 md파일과 같이 있으면 좋습니다.
+
+### 페이지를 링크하는 법
+만일 rust 폴더를 링크한다면 아래와 같이
+``` markdown
+[Link](rust "")
+```
+만일 language 폴더 안의 rust폴더가 있다고 하면
+``` markdown
+[Link](language/rust "")
+```
+이렇게 링크하면 됩니다.
 
 ### md 파일
 디렉토리에 한개만 있으면 됩니다.
@@ -59,10 +68,12 @@ prema html {root_path} {html_path}
 아직 미지원
 
 ### 베이직
+title은 사이트 또는 블로그의 이름을 표현합니다.
 created는 아래와 같은 포맷으로 작성하면 html에 자동으로 작성일이 추가됩니다.
 tag의 경우 나중에 tag list를 통해 tag별로 게시물을 확인할 수 있습니다.
 ``` toml
 [basic]
+title = "Prema"
 created = "yyyy-MM-dd hh:mm:ss"
 tag = "food"
 ```

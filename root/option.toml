@@ -10,9 +10,11 @@ end = "end"
 night = false
 
 [footer]
-title = "220022"
-sns.facebook = "Hey"
+title = "© 2025 Rubinsharks™. All Rights Reserved."
+sns.facebook = "https://www.meta.com/"
+sns.github = "https://www.github.com/"
 
 [basic]
+title = "Rubinsharks"
 created = "2025-01-01 22:10:23"
-tag = "root"
+tags = "root"

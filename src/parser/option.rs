@@ -58,7 +58,7 @@ pub fn load_option_from_toml(path: &Path) -> Result<MDOption, &'static str> {
     let mut menus = vec![];
     let mut themes = HashMap::new();
     let mut footer = Footer { title: "".to_string(), snss: vec![] };
-    let mut basic = Basic { created: "".to_string(), tag: "".to_string() };
+    let mut basic = Basic { title: "".to_string(), created: "".to_string(), tags: vec![] };
 
     // 파일 순서대로 키를 접근
     for (key, value) in doc.as_table() {
@@ -101,11 +101,19 @@ pub struct MDOption {
 
 impl MDOption {
     pub fn menus_to_html(&self) -> String {
-        menus_to_html(&self.menus, &Some(self.clone()))
+        if (*self).menus.is_empty() {
+            "".to_string()
+        } else {
+            menus_to_html(&self.menus, &Some(self.clone()))
+        }
     }
 
     pub fn footer_to_html(&self) -> String {
-        footer_to_html(&self.footer, &Some(self.clone()))
+        if (*self).footer.title.is_empty() && (*self).footer.snss.is_empty() {
+            "".to_string()
+        } else {
+            footer_to_html(&self.footer, &Some(self.clone()))
+        }
     }
 
     pub fn is_night(&self) -> bool {
@@ -115,8 +123,8 @@ impl MDOption {
         false
     }
 
-    pub fn tag(&self) -> &String {
-        &self.basic.tag
+    pub fn tag(&self) -> &Vec<String> {
+        &self.basic.tags
     }
 }
 
@@ -135,12 +143,30 @@ struct DropDown {
 
 fn menus_to_html(menus: &Vec<Menu>, md_option: &Option<MDOption>) -> String {
     let mut html = String::new();
-    html.push_str(&format!("<nav class=\"{}\">", filter_attrs("bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700", md_option)));
+    html.push_str(&format!(r#"<nav class="{}">"#, filter_attrs("bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700", md_option)));
     html.push_str(
         &format!("<div class=\"{}\">", filter_attrs("max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4", md_option))
     );
-    html.push_str(&format!("<div class=\"{}\" id=\"navbar-dropdown\">", filter_attrs("hidden w-full md:block md:w-auto", md_option)));
-    html.push_str(&format!("<ul class=\"{}\">", filter_attrs("flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700", md_option)));
+
+    // logo
+    html.push_str(&format!(r###"<a href="#" class="{}">"###, filter_attrs("flex items-center space-x-3 rtl:space-x-reverse", md_option)));
+    // html.push_str(&format!(r#"<img src="https://flowbite.com/docs/images/logo.svg" class="{}" alt="Flowbite Logo" />"#, filter_attrs("h-8", md_option)));
+    if let Some(option) = md_option {
+        html.push_str(&format!(r#"<span class="{}">{}</span>"#, filter_attrs("self-center text-2xl font-semibold whitespace-nowrap dark:text-white", md_option), option.basic.title));
+    }
+    html.push_str("</a>");
+
+    // collapse
+    html.push_str(&format!(r#"<button data-collapse-toggle="navbar-dropdown" type="button" class="{}" aria-controls="navbar-dropdown" aria-expanded="false">"#, filter_attrs("inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600", md_option)));
+    html.push_str(&format!(r#"<span class="{}">Open main menu</span>"#, filter_attrs("sr-only", md_option)));
+    html.push_str(&format!(r#"<svg class="{}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">"#, filter_attrs("w-5 h-5", md_option)));
+    html.push_str(r#"<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>"#);
+    html.push_str("</svg>");
+    html.push_str("</button>");
+
+    // menus
+    html.push_str(&format!(r#"<div class="{}" id="navbar-dropdown">"#, filter_attrs("hidden w-full md:block md:w-auto", md_option)));
+    html.push_str(&format!(r#"<ul class="{}">"#, filter_attrs("flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700", md_option)));
     for menu in menus {
         html.push_str("<li>");
         if menu.dropdowns.is_empty() {
@@ -222,8 +248,9 @@ fn table_to_dropdowns(table: &Table) -> Vec<DropDown> {
 
 #[derive(Clone)]
 pub struct Basic {
+    title: String,
     created: String,
-    pub tag: String,
+    pub tags: Vec<String>,
 }
 
 #[derive(Clone)]
@@ -275,20 +302,19 @@ impl FooterSNS {
 fn footer_to_html(footer: &Footer, md_option: &Option<MDOption>) -> String {
     let mut html = String::new();
 
-    html.push_str(&format!("<footer class=\"{}\">", filter_attrs("fixed bottom-0 left-0 z-10 w-full p-6 bg-white border-t border-gray-200 shadow-sm md:flex md:items-center md:justify-between md:p-6 dark:bg-gray-800 dark:border-gray-600", md_option)));
-    // html.push_str(&format!("<div class=\"{}\">", filter_attrs("mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8", md_option)));
-    // html.push_str(&format!("<div class=\"{}\">", filter_attrs("sm:flex sm:items-center sm:justify-between", md_option)));
+    html.push_str(&format!(r#"<footer class="{}">"#, filter_attrs("fixed bottom-0 left-0 z-20 w-full p-6 bg-white border-t border-gray-200 shadow-sm md:flex md:items-center md:justify-between md:p-6 dark:bg-gray-800 dark:border-gray-600", md_option)));
+    
+    html.push_str(&format!(r#"<div class="{}">"#, filter_attrs("sm:flex sm:items-center sm:justify-between", md_option)));
     html.push_str(&format!("<span class=\"{}\">{}", filter_attrs("text-sm text-gray-500 sm:text-center dark:text-gray-400", md_option), footer.title));
     html.push_str("</span>");
-    html.push_str(&format!("<div class=\"{}\">", filter_attrs("flex mt-4 sm:justify-center sm:mt-0", md_option)));
+    html.push_str(&format!("<div class=\"{}\">", filter_attrs("flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0", md_option)));
     for sns in &footer.snss {
-        html.push_str(&format!("<a href={} class=\"{}\">", sns.path, filter_attrs("text-gray-500 hover:text-gray-900 dark:hover:text-white", md_option)));
+        html.push_str(&format!("<a href={} class=\"{}\">", sns.path, filter_attrs("text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5", md_option)));
         html.push_str(sns.svg_html());
         html.push_str("</a>");
     }
     html.push_str("</div>");
-    // html.push_str("</div>");
-    // html.push_str("</div>");
+    html.push_str("</div>");
     html.push_str("</footer>");
     html
 }
@@ -356,17 +382,28 @@ fn table_to_themes(table: &Table) -> HashMap<String, ThemeValue> {
 
 fn table_to_basic(table: &Table) -> Basic {
     let mut basic = Basic {
+        title: "".to_string(),
         created: "".to_string(),
-        tag: "".to_string(),
+        tags: vec![],
     };
     for (key, value) in table {
         if let Item::Value(Value::String(path)) = value {
-            if key == "created" {
+            if key == "title" {
+                basic.title = path.to_string().trim().trim_matches('"').to_string();
+            } else if key == "created" {
                 basic.created = path.to_string().trim().trim_matches('"').to_string();
             } else if key == "tag" {
-                basic.tag = path.to_string().trim().trim_matches('"').to_string();
+                basic.tags = vec![path.to_string().trim().trim_matches('"').to_string()];
             }
-        } else {
+        } else if let Item::Value(Value::Array(path)) = value {
+            basic.tags = path.iter().filter_map(|x| {
+                    if let Value::String(s) = x {
+                        Some(s.to_string().trim().trim_matches('"').to_string())
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<String>>();
         }
     }
     basic

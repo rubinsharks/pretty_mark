@@ -1,6 +1,6 @@
 [package]
 name = "prema"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "make markdown to html"
 readme = "README.md"
@@ -13,3 +13,5 @@ license = "MIT"
 markdown = "1.0.0-alpha.23"
 toml_edit = "0.22.24"
 tiny_http = "0.12"
+structopt = "0.3.26"
+chrono = "0.4.31"

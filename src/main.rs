@@ -9,38 +9,58 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Display, Path, PathBuf};
 use tiny_http::{Header, Response, Server};
+use structopt::StructOpt;
+use chrono::Local;
 
-fn main() -> Result<(), &'static str> {
-    let args: Vec<String> = env::args().collect();
-    if args.len() <= 1 {
-        return Err("too few arguments");
-    }
-    if args[1] == "html" {
-        if args.len() < 4 {
-            return Err("too few arguments");
+#[derive(Debug, StructOpt)]
+#[structopt(name = "prema", about = "A CLI tool")]
+enum Cli {
+    New(NewCommand),
+    Html(HtmlCommand),
+}
+
+#[derive(Debug, StructOpt)]
+struct NewCommand {
+    name: String,
+
+    #[structopt(long, use_delimiter = true)]
+    tags: Vec<String>,
+}
+
+#[derive(Debug, StructOpt)]
+struct HtmlCommand {
+    md_path: String,
+    html_path: String,
+}
+
+fn main() -> Result<(), String> {
+    // Match on subcommands and handle errors
+    let cli = Cli::from_iter_safe(std::env::args()).unwrap_or_else(|e| {
+        println!("{e}");
+        println!("EXAMPLE:");
+        println!("    prema new {{name}}");
+        println!("    prema html {{md_path}} {{html_path}}");
+        println!("    prema html {{md_path}} {{html_path}} --tags \"ios, android\"");
+        std::process::exit(1); // Exit with an error code
+    });
+
+    match cli {
+        Cli::New(cmd) => {
+            println!("With tags: {:?}", cmd.tags);
+            let name = cmd.name.as_str();
+
+            let md_path = Path::new(".");
+            make_new_page(md_path, name, cmd.tags)?;
+            Ok(())
+        },
+        Cli::Html(cmd) => {
+            let md_root_path = Path::new(cmd.md_path.as_str());
+            let html_root_path = Path::new(cmd.html_path.as_str());
+            make_htmls(md_root_path, html_root_path)?;
+            run_server(html_root_path)?;
+            Ok(())
         }
-        let md_path = Path::new(&args[2]);
-        let html_path = Path::new(&args[3]);
-        make_htmls(md_path, html_path)?;
-        run_server(html_path)?;
-        return Ok(());
-    } else if args[1] == "new" {
-        if args.len() < 3 {
-            return Err("too few arguments");
-        }
-        let name = &args[2];
-
-        let md_path = Path::new(".");
-        make_new_page(md_path, name)?;
-        return Ok(());
     }
-    println!("error!!");
-
-    let md_path = Path::new("root");
-    let html_path = Path::new("html");
-    make_htmls(md_path, html_path)?;
-    make_new_page(md_path, "test")?;
-    Ok(())
 }
 
 fn run_server(html_path: &Path) -> Result<(), &'static str> {
@@ -114,7 +134,7 @@ fn run_server(html_path: &Path) -> Result<(), &'static str> {
     Ok(())
 }
 
-fn make_htmls(md: &Path, html: &Path) -> Result<(), &'static str> {
+fn make_htmls(md: &Path, html: &Path) -> Result<(), String> {
     parser::make_pages(md, html)
 }
 
@@ -124,7 +144,7 @@ fn make_htmls(md: &Path, html: &Path) -> Result<(), &'static str> {
 /// make {name}.md in directory
 ///
 /// make option.toml in directory
-fn make_new_page(path: &Path, name: &str) -> Result<(), &'static str> {
+fn make_new_page(path: &Path, name: &str, tags: Vec<String>) -> Result<(), &'static str> {
     let dir_path = path.join(name);
     if dir_path.exists() {
         println!("Directory '{}' already exists, returning.", name);
@@ -148,17 +168,27 @@ fn make_new_page(path: &Path, name: &str) -> Result<(), &'static str> {
             .ok()
             .ok_or("faild to write to file")?;
 
-        // Create the option.toml file in the new directory
         let toml_path = dir_path.join("option.toml");
         let mut toml_file = fs::File::create(toml_path)
             .ok()
             .ok_or("faild to create file")?;
 
-        // Optionally, write a basic config to the toml file
-        writeln!(toml_file, "[settings]").ok().ok_or("")?;
-        writeln!(toml_file, "name = \"{}\"", last_name)
-            .ok()
-            .ok_or("")?;
+        if !tags.is_empty() {
+            writeln!(toml_file, "[basic]").ok().ok_or("")?;
+            let tags_str = tags.iter()
+                  .map(|s| format!("\"{}\"", s.trim())) 
+                  .collect::<Vec<String>>()
+                .join(",");
+            writeln!(toml_file, "tags = [{}]", tags_str)
+                .ok()
+                .ok_or("")?;
+
+            let now = Local::now();
+            let formatted_time = now.format("%Y-%m-%d %H:%M:%S").to_string();
+            writeln!(toml_file, "created = \"{}\"", formatted_time)
+                .ok()
+                .ok_or("")?;
+        }
 
         Ok(())
     } else {

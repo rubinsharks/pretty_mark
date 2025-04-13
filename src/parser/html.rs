@@ -5,6 +5,13 @@ use crate::parser::markdown::filter_attrs;
 
 pub fn headers_highlight(md_option: &Option<MDOption>) -> Vec<HTMLNode> {
     Vec::from([
+        HTMLNode::from_attributes(HTMLTag::Meta, HashMap::from([
+            ("charset", String::from("UTF-8")),
+        ]), md_option),
+        HTMLNode::from_attributes(HTMLTag::Meta, HashMap::from([
+            ("name", String::from("viewport")),
+            ("content", String::from("width=device-width, initial-scale=1.0")),
+        ]), md_option),
         HTMLNode::from_attributes(HTMLTag::Link, HashMap::from([
             ("rel", String::from("stylesheet")),
             ("href", String::from("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css")),
@@ -52,6 +59,7 @@ pub enum HTMLTag {
     Footer,
     Div,
     Span,
+    Meta,
 }
 
 impl HTMLTag {
@@ -201,6 +209,7 @@ impl HTMLTag {
             HTMLTag::Footer => "footer",
             HTMLTag::Div => "div",
             HTMLTag::Span => "span",
+            HTMLTag::Meta => "meta",
             _ => { "" }
         }
     }

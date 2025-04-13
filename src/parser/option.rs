@@ -149,7 +149,7 @@ fn menus_to_html(menus: &Vec<Menu>, md_option: &Option<MDOption>) -> String {
     );
 
     // logo
-    html.push_str(&format!(r###"<a href="#" class="{}">"###, filter_attrs("flex items-center space-x-3 rtl:space-x-reverse", md_option)));
+    html.push_str(&format!(r###"<a href="/" class="{}">"###, filter_attrs("flex items-center space-x-3 rtl:space-x-reverse", md_option)));
     // html.push_str(&format!(r#"<img src="https://flowbite.com/docs/images/logo.svg" class="{}" alt="Flowbite Logo" />"#, filter_attrs("h-8", md_option)));
     if let Some(option) = md_option {
         html.push_str(&format!(r#"<span class="{}">{}</span>"#, filter_attrs("self-center text-2xl font-semibold whitespace-nowrap dark:text-white", md_option), option.basic.title));
@@ -210,7 +210,7 @@ fn table_to_menus(table: &Table) -> Vec<Menu> {
         } else if let Item::Value(Value::String(path)) = value {
             let menu = Menu {
                 name: key.to_string(),
-                path: path.to_string().trim().trim_matches('"').to_string(),
+                path: ensure_leading_slash(path.to_string().trim().trim_matches('"')),
                 dropdowns: vec![],
             };
             menus.push(menu);
@@ -224,6 +224,14 @@ fn table_to_menus(table: &Table) -> Vec<Menu> {
         }
     }
     menus
+}
+
+fn ensure_leading_slash(s: &str) -> String {
+    if s.starts_with('/') {
+        s.to_string()
+    } else {
+        format!("/{}", s)
+    }
 }
 
 fn table_to_dropdowns(table: &Table) -> Vec<DropDown> {

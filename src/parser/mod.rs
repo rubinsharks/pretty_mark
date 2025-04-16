@@ -179,16 +179,22 @@ fn write_html(html_path: &Path, md_option: &Option<MDOption>, html: &String) -> 
     }
     
     file.write_all(r#"<div class="max-w-screen-xl mx-auto px-4">"#.as_bytes()).ok().ok_or("")?;
+    file.write_all(r#"<div class="left-0 h-2 w-full"></div>"#.as_bytes())
+    .ok()
+    .ok_or("all fails")?;
     file.write_all(html.as_bytes()).ok().ok_or("all fails")?;
     file.write_all(r#"</div>"#.as_bytes()).ok().ok_or("")?;
-    file.write_all(r#"<div class="left-0 h-20 w-full"></div>"#.as_bytes())
+    file.write(format!("\n").as_bytes()).ok().ok_or("")?;
+    file.write_all(r#"<div class="left-0 h-30 w-full"></div>"#.as_bytes())
         .ok()
         .ok_or("all fails")?;
+    file.write(format!("\n").as_bytes()).ok().ok_or("")?;
     if let Some(option) = &md_option {
         file.write(format!("{}", option.footer_to_html().as_str()).as_bytes())
             .ok()
             .ok_or("")?;
     }
+    file.write(format!("\n").as_bytes()).ok().ok_or("")?;
     file.write(format!("</body>").as_bytes()).ok().ok_or("")?;
     
     Ok(())

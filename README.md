@@ -1,10 +1,16 @@
-very simple blog generator!
+Very simple static site generator from markdown!
 
-prema 는 pretty markdown의 줄임말입니다.
+Prema is short for Pretty Markdown.
 
-tailwindcss와 flowbite를 기반으로 하고 있습니다.
+It is based on Tailwind CSS and Flowbite.
 
-### 명령어
+### Install
+You can install this package using Cargo:
+``` bash
+cargo install prema
+```
+
+### Command
 ``` bash
 # generate html
 # make hierarchy htmls based on selected directory
@@ -19,7 +25,7 @@ prema new {name}
 prema new {name} --tags "ios, android"
 ```
 
-### MD Directory 구조
+### MD Directory Structure
 ``` plain
 - {filename}.md (required)
 - option.toml (optional)
@@ -30,47 +36,62 @@ prema new {name} --tags "ios, android"
 - [image files]
 - [other md directories]
 ```
-구조는 위와 같이 계층형으로 되어 있으며 하위 디렉토리에 option이 없을 경우 상위 디렉토리를 참조하게 됩니다.
+The structure is hierarchical as shown above. If an option is not present in a subdirectory, it will inherit from its parent directory.
 
-theme의 경우 설정되어있지 않으면 상위theme를 따라가며 상위도 없다면 기본적으로 dark
-md 파일은 한 directory에 반드시 1개만 있어야 하며 파일명은 상관 없음
-image파일은 jpg, jpeg, png만 지원
+For the theme setting, if it is not explicitly defined, it will follow the theme of the parent directory. If no theme is set in any parent directories, the default is dark.
 
-### 타이틀
-여기서는 Heading(#, ##, ...)이 있는 맨 첫줄을 타이틀로 인식합니다. 타이틀은 태그에 해당하는 리스트에서 보여질때 사용됩니다.
+Each directory must contain exactly one Markdown (.md) file, and the filename does not matter.
 
-### 원리
-디렉토리 하나를 하나의 페이지로 보고 있습니다.
-디렉토리 하나에 하나의 md파일이 반드시 존재해야 하며 이미지가 있을 경우 이미지 파일들이 해당 md파일과 같이 있으면 좋습니다.
+Only image files in JPG, JPEG, or PNG formats are supported.
 
-### 페이지를 링크하는 법
-만일 rust 폴더를 링크한다면 아래와 같이
+### Principle
+Each directory is treated as a single page.
+There must be exactly one Markdown (.md) file in each directory.
+If there are image files, it's best to place them in the same directory as the corresponding Markdown file.
+
+### Link
+- Page Link
+  
+If you want to link to the rust folder, you can do it like this,
 ``` markdown
 [Link](rust "")
 ```
-만일 language 폴더 안의 rust폴더가 있다고 하면
+If there's a rust folder inside the language directory, you can link to it like this,
 ``` markdown
 [Link](language/rust "")
 ```
-이렇게 링크하면 됩니다.
+You can link to it like above.
+- Image Link
 
-### md 파일
-디렉토리에 한개만 있으면 됩니다.
-없거나 2개 이상일경우 없는 디렉토리로 간주합니다.
+After adding the image file,
+``` markdown
+![Alt text](image.jpeg "Optional title")
+```
+As shown above, simply add an exclamation mark (!), followed by the alt text, and then the file name, such as image.jpeg.
 
-### 마크다운 문서파일들 변경하기
-마크다운 파일들이 있는 루트 폴더를 지정하고 html이 들어갈 루트 폴더를 지정하면 된다.
+### .md File
+There should be exactly one Markdown file in each directory.
+If there are none or more than one, the directory will be considered as one without an .md file.
+
+### Converting Markdown document files
+You need to specify the root folder containing the Markdown files and the root folder where the HTML files will be placed.
 ``` shell
 prema html {root_path} {html_path}
 ```
 
-### 메인 아이콘(홈으로 갈 수 있는..)
-아직 미지원
+### Main Icon(This can go home..)
+Not supported yet..
 
-### 베이직
-title은 사이트 또는 블로그의 이름을 표현합니다.
-created는 아래와 같은 포맷으로 작성하면 html에 자동으로 작성일이 추가됩니다.
-tag의 경우 나중에 tag list를 통해 tag별로 게시물을 확인할 수 있습니다.
+### Basic
+- title
+  - Represents the name of the site or blog.
+  - If no title is provided, the first line with a heading (#, ##, ...) will be recognized as the title.
+  - The title is used when the list corresponding to the tags is displayed.
+- created
+  - If you write in the "yyyy-MM-dd hh:mm:ss" format, the creation date will be automatically added to the HTML.
+- tag
+  - You will be able to view posts by tag through the tag list later.
+
 ``` toml
 [basic]
 title = "Prema"
@@ -78,28 +99,39 @@ created = "yyyy-MM-dd hh:mm:ss"
 tag = "food"
 ```
 
-### 내비
-option.toml에 아래와 같이 적으면 되고 2depth까지만 지원합니다.
+### Nav
+You can define options in option.toml as shown below.
+Only up to 2 levels of depth are supported.
+This is used to generate a menu bar for the site.
 ``` toml
 [nav]
+# if you want to link to home page,
 home = "/"
+
+# if you want to 2depth menu,
 service.etc1 = "etc1"
 service.etc2 = "etc2"
 service.etc3 = "etc3"
+
 menu = "menu"
 end = "end"
+
+# if you want to name with space,
+"about me" = "about_me"
+my."about me" = "my/about_me"
+"my profile"."about me" = "my_profile/about_me"
 ```
 
-### 테마
-현재 다크모드를 설정할 수 있습니다.
+### Theme
+You can configure whether dark mode is enabled as shown below.
 ``` toml
 [theme]
 night = true
 ```
 
-### 푸터
-하단에 들어갈 문장을 작성할 수 있습니다.
-sns는 현재 5개 지원합니다.
+### Footer
+You can write a custom message to be displayed at the bottom of the page.
+Currently, 5 social media platforms are supported.
 ``` toml
 [footer]
 title = "© 2025 Prema. All Rights Reserved"

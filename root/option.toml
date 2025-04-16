@@ -2,14 +2,16 @@
 home = "/"
 language.rust = "/language/rust"
 language.rust2 = "language/rust"
-service.etc2 = "etc2"
+"my profile"."about me" = "my_profile/about_me"
+service."etc2 2" = "etc2"
 service.etc3 = "etc3"
 service2.etc2 = "etc2"
 service2.etc3 = "etc3"
 rust = "rust"
+"about me" = "about_me"
 
 [theme]
-night = false
+night = true
 
 [footer]
 title = "© 2025 Rubinsharks™. All Rights Reserved."

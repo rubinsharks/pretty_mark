@@ -4,6 +4,13 @@ use crate::parser::option::MDOption;
 use crate::parser::markdown::filter_attrs;
 
 pub fn headers_highlight(md_option: &Option<MDOption>) -> Vec<HTMLNode> {
+    let mut is_night = false;
+    match md_option {
+        Some(option) => {
+            is_night = option.is_night()
+        }
+        None => {}
+    }
     Vec::from([
         HTMLNode::from_attributes(HTMLTag::Meta, HashMap::from([
             ("charset", String::from("UTF-8")),
@@ -14,7 +21,7 @@ pub fn headers_highlight(md_option: &Option<MDOption>) -> Vec<HTMLNode> {
         ]), md_option),
         HTMLNode::from_attributes(HTMLTag::Link, HashMap::from([
             ("rel", String::from("stylesheet")),
-            ("href", String::from("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css")),
+            ("href", format!("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/{}.min.css", if is_night { "atom-one-dark" } else { "atom-one-light" })),
         ]), md_option),
         HTMLNode::from_attributes(HTMLTag::Script, HashMap::from([
             ("src", String::from("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js")),

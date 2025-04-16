@@ -193,6 +193,7 @@ fn menus_to_html(menus: &Vec<Menu>, md_option: &Option<MDOption>) -> String {
     html.push_str("</div>");
     html.push_str("</div>");
     html.push_str("</nav>");
+    html.push_str("\n");
     html
 }
 
@@ -310,12 +311,12 @@ impl FooterSNS {
 fn footer_to_html(footer: &Footer, md_option: &Option<MDOption>) -> String {
     let mut html = String::new();
 
-    html.push_str(&format!(r#"<footer class="{}">"#, filter_attrs("fixed bottom-0 left-0 z-20 w-full p-6 bg-white border-t border-gray-200 shadow-sm md:flex md:items-center md:justify-between md:p-6 dark:bg-gray-800 dark:border-gray-600", md_option)));
+    html.push_str(&format!(r#"<footer class="{}">"#, filter_attrs("fixed bottom-0 left-0 z-20 w-full p-4 bg-white border-t border-gray-200 shadow-sm md:p-4 dark:bg-gray-800 dark:border-gray-600", md_option)));
     
-    html.push_str(&format!(r#"<div class="{}">"#, filter_attrs("sm:flex sm:items-center sm:justify-between", md_option)));
-    html.push_str(&format!("<span class=\"{}\">{}", filter_attrs("text-sm text-gray-500 sm:text-center dark:text-gray-400", md_option), footer.title));
+    html.push_str(&format!(r#"<div class="{}">"#, filter_attrs("max-w-screen-xl mx-auto sm:flex sm:items-center justify-between", md_option)));
+    html.push_str(&format!("<span class=\"{}\">{}", filter_attrs("text-sm text-gray-500 sm:text-center dark:text-gray-400 truncate", md_option), footer.title));
     html.push_str("</span>");
-    html.push_str(&format!("<div class=\"{}\">", filter_attrs("flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0", md_option)));
+    html.push_str(&format!("<div class=\"{}\">", filter_attrs("flex flex-wrap items-center mt-1 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0", md_option)));
     for sns in &footer.snss {
         html.push_str(&format!("<a href={} class=\"{}\">", sns.path, filter_attrs("text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5", md_option)));
         html.push_str(sns.svg_html());

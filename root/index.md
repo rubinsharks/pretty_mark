@@ -18,6 +18,7 @@
 ![Alt text](image.jpeg "Optional title")
 [러스트](language/rust "러스트")
 [Refer](refer "러스트")
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=500&duration=3000&color=2C6EF7&width=435&lines=Rubinsharks+Site)](https://git.io/typing-svg)
 
 ``` rust
 fn main() {

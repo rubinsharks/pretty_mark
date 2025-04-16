@@ -2,7 +2,7 @@
 name = "prema"
 version = "0.1.5"
 edition = "2021"
-description = "make markdown to html"
+description = "convert markdown to html"
 readme = "README.md"
 repository = "https://github.com/rubinsharks/pretty_mark"
 license = "MIT"

@@ -18,7 +18,7 @@ cargo install prema
 prema html {md_directory} {html_directory}
 
 # generate set of md
-# make {name}.md, option.toml
+# make directory of {name} contains {name}.md, option.toml
 prema new {name}
 
 # setting tags
@@ -145,27 +145,32 @@ sns.dribble = ""
 ### Supported Markdown
 ``` plain
 Heading
-#
-##
-###
-####
-#####
-######
+# Heading Text
+## Heading Text
+### Heading Text
+#### Heading Text
+##### Heading Text
+###### Heading Text
 
 List 
-- 
-*
+- ItemText
+* ItemText
 
 Line
 ***
+---
 
 Link
-[Text](Link "Title")
-![Alt](Link "Title")
+[Text](MdLink "Title")
+[Text](HttpLink "Title")
+![Alt](ImageLink "Title")
 
 TextStyle
 **Strong**
 *Emphasis*
+
+BlockQuote
+> Text
 
 Code
 ⠀``` rust

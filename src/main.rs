@@ -15,7 +15,9 @@ use chrono::Local;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "prema", about = "A CLI tool")]
 enum Cli {
+    #[structopt(name = "new", about = "Make new markdown folder and files")]
     New(NewCommand),
+    #[structopt(name = "html", about = "Converting markdown files to html files")]
     Html(HtmlCommand),
 }
 
@@ -31,6 +33,9 @@ struct NewCommand {
 struct HtmlCommand {
     md_path: String,
     html_path: String,
+
+    #[structopt(long)]
+    server: bool,
 }
 
 fn main() -> Result<(), String> {
@@ -39,8 +44,8 @@ fn main() -> Result<(), String> {
         println!("{e}");
         println!("EXAMPLE:");
         println!("    prema new {{name}}");
+        println!("    prema new {{name}} --tags \"ios, android\"");
         println!("    prema html {{md_path}} {{html_path}}");
-        println!("    prema html {{md_path}} {{html_path}} --tags \"ios, android\"");
         std::process::exit(1); // Exit with an error code
     });
 
@@ -57,7 +62,9 @@ fn main() -> Result<(), String> {
             let md_root_path = Path::new(cmd.md_path.as_str());
             let html_root_path = Path::new(cmd.html_path.as_str());
             make_htmls(md_root_path, html_root_path)?;
-            run_server(html_root_path)?;
+            if cmd.server {
+                run_server(html_root_path)?;
+            }
             Ok(())
         }
     }

@@ -1,6 +1,6 @@
 [package]
 name = "prema"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 description = "convert markdown to html"
 readme = "README.md"

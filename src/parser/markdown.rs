@@ -62,6 +62,7 @@ pub fn md_class(md: &Node, sup: Option<&Node>, md_option: &Option<MDOption>) -> 
         Node::Blockquote(..) => filter_attrs(
             "p-4 my-4 border-s-4 border-gray-300 bg-gray-50 dark:border-gray-500 dark:bg-gray-800", md_option
         ),
+        Node::ThematicBreak(..) => filter_attrs("h-px bg-slate-200 dark:bg-slate-700 border-0 my-1.5", md_option),
         _ => filter_attrs("", md_option),
     }
 }
@@ -197,6 +198,12 @@ pub fn md_to_html(md: &Node, sup: Option<&Node>, md_option: &Option<MDOption>) -
                 ),
             ]),
             value: "".to_string(),
+        }),
+        Node::ThematicBreak(node) => Some(HTMLNode {
+            tag: HTMLTag::HR,
+            children: vec![],
+            attributes: HashMap::from([("class", md_class(md, sup, md_option))]),
+            value: String::from(""),
         }),
         _ => None,
     }

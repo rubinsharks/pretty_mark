@@ -67,6 +67,7 @@ pub enum HTMLTag {
     Div,
     Span,
     Meta,
+    HR,
 }
 
 impl HTMLTag {
@@ -217,6 +218,7 @@ impl HTMLTag {
             HTMLTag::Div => "div",
             HTMLTag::Span => "span",
             HTMLTag::Meta => "meta",
+            HTMLTag::HR => "hr",
             _ => { "" }
         }
     }

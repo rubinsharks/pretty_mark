@@ -141,3 +141,36 @@ sns.twitter = ""
 sns.github = ""
 sns.dribble = ""
 ```
+
+### Supported Markdown
+``` plain
+Heading
+#
+##
+###
+####
+#####
+######
+
+List 
+- 
+*
+
+Line
+***
+
+Link
+[Text](Link "Title")
+![Alt](Link "Title")
+
+TextStyle
+**Strong**
+*Emphasis*
+
+Code
+⠀``` rust
+fn main() {
+
+}
+⠀```
+```

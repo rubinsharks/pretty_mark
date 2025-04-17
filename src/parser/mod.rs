@@ -116,6 +116,7 @@ pub fn page_to_html(html_root_path: &Path, page: &Page, md_sup_option: &Option<M
 
         let html = match parser(md_path) {
             Ok(node) => {
+                println!("{node:?}");
                 match md_to_html(&node, None, &md_option) {
                     None => String::from("1"),
                     Some(mut node) => {

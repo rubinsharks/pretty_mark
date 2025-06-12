@@ -178,4 +178,16 @@ fn main() {
 
 }
 ⠀```
+
+Table
+| Month    | Savings |
+| -------- | ------  |
+| January  | $250    |
+| February | $80     |
+| March    | $420    |
+
+```
+
+### Will Support Markdown
+``` plain
 ```

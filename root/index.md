@@ -25,6 +25,8 @@ title: "d1212"
 * 외부링크: <http://example.com/>
 
 [Google](https://google.com "google link")
+- [Google](https://google.com "google link")
+
 ![Alt text](image.jpeg "Optional title")
 [러스트](language/rust "러스트")
 [Refer](refer "러스트")
@@ -36,5 +38,11 @@ fn main() {
     println!("Hello, world!");
 }
 ```
+
+| Month    | Savings |
+| :-------- | ------: |
+| January  | $250    |
+| February | - $80     |
+| March    | $420    |
 
 [#TAG]: # "android, rust"

@@ -68,6 +68,12 @@ pub enum HTMLTag {
     Span,
     Meta,
     HR,
+    Table,
+    THead,
+    TR,
+    TH,
+    TBody,
+    TD,
 }
 
 impl HTMLTag {
@@ -219,6 +225,12 @@ impl HTMLTag {
             HTMLTag::Span => "span",
             HTMLTag::Meta => "meta",
             HTMLTag::HR => "hr",
+            HTMLTag::Table => "table",
+            HTMLTag::THead => "thead",
+            HTMLTag::TR => "tr",
+            HTMLTag::TH => "th",
+            HTMLTag::TBody => "tbody",
+            HTMLTag::TD => "td",
             _ => { "" }
         }
     }

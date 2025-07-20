@@ -46,9 +46,9 @@ pub fn md_class(md: &Node, sup: Option<&Node>, md_option: &Option<MDOption>, ind
             },
         },
         Node::Heading(value) => match value.depth {
-            1 => filter_attrs("text-4xl font-bold mb-3 mt-5 text-slate-900 dark:text-white", md_option),
-            2 => filter_attrs("text-3xl font-bold mb-3 mt-5 text-slate-900 dark:text-white", md_option),
-            3 => filter_attrs("text-2xl font-bold mb-3 mt-5 text-slate-900 dark:text-white", md_option),
+            1 => filter_attrs("text-4xl font-bold mb-8 mt-5 text-slate-900 dark:text-white", md_option),
+            2 => filter_attrs("text-3xl font-bold mb-6 mt-5 text-slate-900 dark:text-white", md_option),
+            3 => filter_attrs("text-2xl font-bold mb-4 mt-5 text-slate-900 dark:text-white", md_option),
             4 => filter_attrs("text-xl font-bold mb-3 mt-5 text-slate-900 dark:text-white", md_option),
             5 => filter_attrs("text-base font-bold mb-3 mt-5 text-slate-900 dark:text-white", md_option),
             6 => filter_attrs("text-sm font-bold mb-3 mt-5 text-slate-900 dark:text-white", md_option),

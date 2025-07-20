@@ -83,7 +83,7 @@ fn run_server(html_path: &Path) -> Result<(), &'static str> {
         
         if let Some(ext) = file_extension {
             println!("이미지 요청: {:?}", full_path);
-            if ["jpg", "jpeg", "png"].contains(&ext) {
+            if ["jpg", "jpeg", "png", "svg"].contains(&ext) {
                 let mut file = match File::open(&full_path) {
                     Ok(f) => f,
                     Err(_) => {
@@ -101,6 +101,7 @@ fn run_server(html_path: &Path) -> Result<(), &'static str> {
                 let mime = match ext {
                     "jpg" | "jpeg" => "image/jpeg",
                     "png" => "image/png",
+                    "svg" => "image/svg+xml",
                     _ => "application/octet-stream", // 기본 값
                 };
 

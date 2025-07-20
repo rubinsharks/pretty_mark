@@ -95,7 +95,7 @@ pub fn find_images(path: &Path) -> Result<Vec<PathBuf>, &'static str> {
         match path.extension() {
             None => {}
             Some(extension) => {
-                if extension == "png" || extension == "jpeg" || extension == "jpg" {
+                if extension == "png" || extension == "jpeg" || extension == "jpg" || extension == "svg" {
                     md_paths.push(path);
                 }
             }

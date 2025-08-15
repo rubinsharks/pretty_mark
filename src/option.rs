@@ -1,11 +1,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use crate::parser::Page;
+use crate::html::filter_attrs;
+use crate::page::Page;
 use std::fs::File;
 use std::io::Read;
 use toml_edit::{DocumentMut, value, Value, Item, Table};
 use std::collections::HashMap;
-use crate::parser::markdown::filter_attrs;
 
 pub fn load_option(path: &Path) -> Result<MDOption, &'static str> {
     match find_option(path) {
@@ -142,47 +142,51 @@ struct DropDown {
 }
 
 fn menus_to_html(menus: &Vec<Menu>, md_option: &Option<MDOption>) -> String {
+    let mut is_night = false;
+    if let Some(option) = md_option {
+        is_night = option.is_night();
+    }
     let mut html = String::new();
-    html.push_str(&format!(r#"<nav class="{}">"#, filter_attrs("bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700", md_option)));
+    html.push_str(&format!(r#"<nav class="{}">"#, filter_attrs("bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700", is_night)));
     html.push_str(
-        &format!("<div class=\"{}\">", filter_attrs("max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4", md_option))
+        &format!("<div class=\"{}\">", filter_attrs("max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4", is_night))
     );
 
     // logo
-    html.push_str(&format!(r###"<a href="/" class="{}">"###, filter_attrs("flex items-center space-x-3 rtl:space-x-reverse", md_option)));
+    html.push_str(&format!(r###"<a href="/" class="{}">"###, filter_attrs("flex items-center space-x-3 rtl:space-x-reverse", is_night)));
     // html.push_str(&format!(r#"<img src="https://flowbite.com/docs/images/logo.svg" class="{}" alt="Flowbite Logo" />"#, filter_attrs("h-8", md_option)));
     if let Some(option) = md_option {
-        html.push_str(&format!(r#"<span class="{}">{}</span>"#, filter_attrs("self-center text-2xl font-semibold whitespace-nowrap dark:text-white", md_option), option.basic.title));
+        html.push_str(&format!(r#"<span class="{}">{}</span>"#, filter_attrs("self-center text-2xl font-semibold whitespace-nowrap dark:text-white", is_night), option.basic.title));
     }
     html.push_str("</a>");
 
     // collapse
-    html.push_str(&format!(r#"<button data-collapse-toggle="navbar-dropdown" type="button" class="{}" aria-controls="navbar-dropdown" aria-expanded="false">"#, filter_attrs("inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600", md_option)));
-    html.push_str(&format!(r#"<span class="{}">Open main menu</span>"#, filter_attrs("sr-only", md_option)));
-    html.push_str(&format!(r#"<svg class="{}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">"#, filter_attrs("w-5 h-5", md_option)));
+    html.push_str(&format!(r#"<button data-collapse-toggle="navbar-dropdown" type="button" class="{}" aria-controls="navbar-dropdown" aria-expanded="false">"#, filter_attrs("inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600", is_night)));
+    html.push_str(&format!(r#"<span class="{}">Open main menu</span>"#, filter_attrs("sr-only", is_night)));
+    html.push_str(&format!(r#"<svg class="{}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">"#, filter_attrs("w-5 h-5", is_night)));
     html.push_str(r#"<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>"#);
     html.push_str("</svg>");
     html.push_str("</button>");
 
     // menus
-    html.push_str(&format!(r#"<div class="{}" id="navbar-dropdown">"#, filter_attrs("hidden w-full md:block md:w-auto", md_option)));
-    html.push_str(&format!(r#"<ul class="{}">"#, filter_attrs("flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700", md_option)));
+    html.push_str(&format!(r#"<div class="{}" id="navbar-dropdown">"#, filter_attrs("hidden w-full md:block md:w-auto", is_night)));
+    html.push_str(&format!(r#"<ul class="{}">"#, filter_attrs("flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700", is_night)));
     for menu in menus {
         html.push_str("<li>");
         if menu.dropdowns.is_empty() {
-            html.push_str(&format!("<a href=\"{}\" class=\"{}\" aria-current=\"page\">{}</a>", menu.path, filter_attrs("block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent", md_option), menu.name));
+            html.push_str(&format!("<a href=\"{}\" class=\"{}\" aria-current=\"page\">{}</a>", menu.path, filter_attrs("block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent", is_night), menu.name));
         } else {
-            html.push_str(&format!(r#"<button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar-{}" class="{}">{}"#, menu.name, filter_attrs("flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent", md_option), menu.name));
+            html.push_str(&format!(r#"<button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar-{}" class="{}">{}"#, menu.name, filter_attrs("flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent", is_night), menu.name));
             html.push_str("<svg class=\"w-2.5 h-2.5 ms-2.5\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 10 6\">");
             html.push_str("<path stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m1 1 4 4 4-4\"/>");
             html.push_str("</svg>");
             html.push_str("</button>");
             // dropdown
-            html.push_str(&format!(r#"<div id="dropdownNavbar-{}" class="{}">"#, menu.name, filter_attrs("z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600", md_option)));
-            html.push_str(&format!("<ul class=\"{}\" aria-labelledby=\"dropdownLargeButton\">", filter_attrs("py-2 text-sm text-gray-700 dark:text-gray-400", md_option)));
+            html.push_str(&format!(r#"<div id="dropdownNavbar-{}" class="{}">"#, menu.name, filter_attrs("z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600", is_night)));
+            html.push_str(&format!("<ul class=\"{}\" aria-labelledby=\"dropdownLargeButton\">", filter_attrs("py-2 text-sm text-gray-700 dark:text-gray-400", is_night)));
             for dropdown in &menu.dropdowns {
                 html.push_str("<li>");
-                html.push_str(&format!("<a href=\"{}\" class=\"{}\">{}</a>", dropdown.path, filter_attrs("block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white", md_option), dropdown.name));
+                html.push_str(&format!("<a href=\"{}\" class=\"{}\">{}</a>", dropdown.path, filter_attrs("block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white", is_night), dropdown.name));
                 html.push_str("</li>");
             }
             html.push_str("</ul>");
@@ -309,16 +313,20 @@ impl FooterSNS {
 
 /// z-10이 footer의 height
 fn footer_to_html(footer: &Footer, md_option: &Option<MDOption>) -> String {
+    let mut is_night = false;
+    if let Some(option) = md_option {
+        is_night = option.is_night();
+    }
     let mut html = String::new();
 
-    html.push_str(&format!(r#"<footer class="{}">"#, filter_attrs("fixed bottom-0 left-0 z-20 w-full p-4 bg-white border-t border-gray-200 shadow-sm md:p-4 dark:bg-gray-800 dark:border-gray-600", md_option)));
+    html.push_str(&format!(r#"<footer class="{}">"#, filter_attrs("fixed bottom-0 left-0 z-20 w-full p-4 bg-white border-t border-gray-200 shadow-sm md:p-4 dark:bg-gray-800 dark:border-gray-600", is_night)));
     
-    html.push_str(&format!(r#"<div class="{}">"#, filter_attrs("max-w-screen-xl mx-auto sm:flex sm:items-center justify-between", md_option)));
-    html.push_str(&format!("<span class=\"{}\">{}", filter_attrs("text-sm text-gray-500 sm:text-center dark:text-gray-400 truncate", md_option), footer.title));
+    html.push_str(&format!(r#"<div class="{}">"#, filter_attrs("max-w-screen-xl mx-auto sm:flex sm:items-center justify-between", is_night)));
+    html.push_str(&format!("<span class=\"{}\">{}", filter_attrs("text-sm text-gray-500 sm:text-center dark:text-gray-400 truncate", is_night), footer.title));
     html.push_str("</span>");
-    html.push_str(&format!("<div class=\"{}\">", filter_attrs("flex flex-wrap items-center mt-1 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0", md_option)));
+    html.push_str(&format!("<div class=\"{}\">", filter_attrs("flex flex-wrap items-center mt-1 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0", is_night)));
     for sns in &footer.snss {
-        html.push_str(&format!("<a href={} class=\"{}\">", sns.path, filter_attrs("text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5", md_option)));
+        html.push_str(&format!("<a href={} class=\"{}\">", sns.path, filter_attrs("text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5", is_night)));
         html.push_str(sns.svg_html());
         html.push_str("</a>");
     }

@@ -15,7 +15,7 @@ cargo install prema
 # generate html
 # make hierarchy htmls based on selected directory
 # make md files to html files in html_directory
-prema html {md_directory} {html_directory}
+prema html {target_directory} {html_directory}
 
 # generate set of md
 # make directory of {name} contains {name}.md, option.toml
@@ -25,29 +25,201 @@ prema new {name}
 prema new {name} --tags "ios, android"
 ```
 
-### MD Directory Structure
-``` plain
-- {filename}.md (required)
-- option.toml (optional)
-  - basic
-  - nav
-  - theme
-  - footer
-- [image files]
-- [other md directories]
+### Structure
+When the conversion is performed, it searches subfolders based on the target directory.
+If an index.toml or index.md file exists inside a folder, an index.html file is generated to create a page.
+If both files exist, index.toml takes precedence.
+
+# index.toml
+### root
+In index.toml, the first layout must always be root.
+Therefore, a root layout must exist, and the structure should be designed so that layouts propagate outward from the root layout.
+``` toml
+[root]
+shape = "column" 
+width = "100%"
+height = "100%"
+dark = false
 ```
-The structure is hierarchical as shown above. If an option is not present in a subdirectory, it will inherit from its parent directory.
 
-For the theme setting, if it is not explicitly defined, it will follow the theme of the parent directory. If no theme is set in any parent directories, the default is dark.
+### layout
+Layouts have a required shape property and optional properties that can be set as needed: width, height, background, path, value, and dark.
+- width, height: Adjust the size; can be specified in px, %, or wrap.
+- background: Sets the background color.
+- path: Makes the layout a clickable button that navigates to the specified value when pressed.
+- value: If specified, allows setting values for the layout and its sublayouts using {}.
+- dark: Determines whether the layout uses a dark theme. If not set, it inherits the dark theme from the parent layout.
+``` toml
+[root.contents]
+shape = "column" 
+width = "200px"
+height = "100%"
+background = "#000"
+path = "#"
+value = { skill_title = "1", skill_image = "duck.jpeg", skill_summary = "index.md" }
+dark = false
+```
 
-Each directory must contain exactly one Markdown (.md) file, and the filename does not matter.
+### sub layout
+To place a layout as a child of another layout, extend it from the parent layout key.
+If a sublayout is needed under the root, extend it as root.{} by inserting the desired name inside the {}.
+Multiple sublayouts can exist.
 
-Only image files in JPG, JPEG, or PNG formats are supported.
+A sublayout is affected by the structure of its parent layout.
+If the parent layout is a column, it will be arranged vertically, and if it is a row, it will be arranged horizontally.
+``` toml
+[root]
+shape = "column" 
+width = "100%"
+height = "100%"
+dark = false
 
-### Principle
-Each directory is treated as a single page.
-There must be exactly one Markdown (.md) file in each directory.
-If there are image files, it's best to place them in the same directory as the corresponding Markdown file.
+[root.child1]
+shape = "text" 
+width = "100%"
+height = "wrap"
+text = "Title"
+color = "#fff"
+size = "24px"
+weight = "bold"
+left_outer_padding = "20px"
+
+[root.child2]
+shape = "markdown" 
+width = "100%"
+height = "100%"
+markdown_path = "title.md"
+horizontal_outer_padding = "20px"
+```
+
+### nav
+In nav, title refers to the text displayed on the left, and headers refers to the menus displayed on the right.
+Menu labels cannot duplicate reserved keywords in the layout (such as width, height, dark, etc.).
+If you want to add a submenu to a menu, you can define it like service.etc1 = "" as shown in the example below.
+If a submenu exists, defining a non-submenu item for the same menu (e.g., service = "") may cause conflicts.
+``` toml
+[root.nav]
+shape = "nav"
+width = "100%"
+height = "70px"
+title = "STAR"
+headers = ["home", "service", "menu", "end", "about me"]
+home = "/"
+end = "doc"
+service.etc1 = "etc1"
+service.etc2 = "etc2"
+service.etc3 = "etc3"
+"about me".my = "about_me/my"
+```
+
+### column, row, box
+Sublayouts can be included, and the arrangement direction is determined by the shape.
+``` toml
+[root]
+shape = "column" 
+width = "100%"
+height = "100%"
+dark = false
+```
+
+### list_column, list_row
+In the case of a list, you can specify a layout.
+The layout specified can receive values through values.
+The injected values can also be passed to the specified layout’s sublayouts using {}.
+A layout is generated for each value in values, and whether they are arranged vertically or horizontally is determined by whether it is list_column or list_row.
+``` toml
+[root.contents.skills]
+shape = "list_row"
+width = "100%"
+height = "200px"
+layout = "skill_layout"
+order_by = "skill_title" # title, date, author, ...
+values = [
+  { skill_title = "1", skill_image = "duck.jpeg", skill_summary = "index.md" },
+  { skill_title = "2", skill_image = "2.png", skill_summary = "skill.md" },
+  { skill_title = "3", skill_image = "3.png", skill_summary = "1.md" },
+  { skill_title = "3", skill_image = "3.png", skill_summary = "1.md" },
+  { skill_title = "3", skill_image = "3.png", skill_summary = "1.md" },
+  { skill_title = "3", skill_image = "3.png", skill_summary = "1.md" },
+  { skill_title = "3", skill_image = "3.png", skill_summary = "1.md" },
+  { skill_title = "3", skill_image = "3.png", skill_summary = "1.md" },
+]
+background = "#0ff"
+
+[skill_layout]
+shape = "column"
+width = "100px"
+height = "250px"
+background = "#00f"
+
+[skill_layout.skill_title]
+shape = "text"
+width = "100%"
+height = "wrap"
+size = "24px"
+text = "{skill_title}"
+color = "#fff"
+family = "montserrat"
+
+[skill_layout.skill_summary]
+shape = "markdown"
+width = "100%"
+height = "wrap"
+markdown_path = "{skill_summary}"
+
+[skill_layout.skill_image]
+shape = "image"
+width = "200px"
+height = "200px"
+image_path = "{skill_image}"
+content_size = "cover" # cover, contain, fill
+```
+
+### text
+Text properties such as content, size, font, and alignment can be set. Sublayouts cannot be included.
+``` toml
+[root.contents.title]
+shape = "text"
+width = "wrap"
+height = "wrap"
+size = "24px"
+text = "Jumbotron!"
+color = "#000"
+family = "montserrat"
+weight = "bold"
+path = "#"
+vertical_align = "center" # top, center, bottom
+horizontal_align = "center" # left, center, right
+```
+
+### image
+Displays an image and allows setting image_path and content_size. Sublayouts cannot be included.
+``` toml
+[skill_layout.skill_image]
+shape = "image"
+width = "200px"
+height = "200px"
+image_path = "image.jpeg" # jpeg, jpg, png, svg
+content_size = "cover" # cover, contain, fill
+```
+
+### markdown
+A Markdown file can be applied, and markdown_path can be set. Sublayouts cannot be included.
+``` toml
+[skill_layout.skill_summary]
+shape = "markdown"
+width = "100%"
+height = "wrap"
+markdown_path = "info.md"
+```
+
+### grid
+- Not yet supported
+
+# index.md
+If a folder does not have an index.toml configured, index.md is converted instead, and its content is treated as Markdown.
+
+# Markdown
 
 ### Link
 - Page Link
@@ -68,79 +240,6 @@ After adding the image file,
 ![Alt text](image.jpeg "Optional title")
 ```
 As shown above, simply add an exclamation mark (!), followed by the alt text, and then the file name, such as image.jpeg.
-
-### .md File
-There should be exactly one Markdown file in each directory.
-If there are none or more than one, the directory will be considered as one without an .md file.
-
-### Converting Markdown document files
-You need to specify the root folder containing the Markdown files and the root folder where the HTML files will be placed.
-``` shell
-prema html {root_path} {html_path}
-```
-
-### Main Icon(This can go home..)
-Not supported yet..
-
-### Basic
-- title
-  - Represents the name of the site or blog.
-  - If no title is provided, the first line with a heading (#, ##, ...) will be recognized as the title.
-  - The title is used when the list corresponding to the tags is displayed.
-- created
-  - If you write in the "yyyy-MM-dd hh:mm:ss" format, the creation date will be automatically added to the HTML.
-- tag
-  - You will be able to view posts by tag through the tag list later.
-
-``` toml
-[basic]
-title = "Prema"
-created = "yyyy-MM-dd hh:mm:ss"
-tag = "food"
-```
-
-### Nav
-You can define options in option.toml as shown below.
-Only up to 2 levels of depth are supported.
-This is used to generate a menu bar for the site.
-``` toml
-[nav]
-# if you want to link to home page,
-home = "/"
-
-# if you want to 2depth menu,
-service.etc1 = "etc1"
-service.etc2 = "etc2"
-service.etc3 = "etc3"
-
-menu = "menu"
-end = "end"
-
-# if you want to name with space,
-"about me" = "about_me"
-my."about me" = "my/about_me"
-"my profile"."about me" = "my_profile/about_me"
-```
-
-### Theme
-You can configure whether dark mode is enabled as shown below.
-``` toml
-[theme]
-night = true
-```
-
-### Footer
-You can write a custom message to be displayed at the bottom of the page.
-Currently, 5 social media platforms are supported.
-``` toml
-[footer]
-title = "© 2025 Prema. All Rights Reserved"
-sns.facebook = ""
-sns.discord = ""
-sns.twitter = ""
-sns.github = ""
-sns.dribble = ""
-```
 
 ### Supported Markdown
 ``` plain

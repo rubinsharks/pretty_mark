@@ -180,6 +180,10 @@ pub fn find_md_paths_except_index(path: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(filtered)
 }
 
+pub fn find_() {
+    
+}
+
 pub fn find_title(path: &Path) -> Result<String, String> {
     Ok("".to_string())
 }

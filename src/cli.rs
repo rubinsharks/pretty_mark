@@ -12,6 +12,7 @@ use std::fmt::Debug;
 use std::fs::File;
 use std::io::{stdin, Read, Write};
 use std::path::{Display, Path, PathBuf};
+use maplit::hashmap;
 use structopt::StructOpt;
 use chrono::Local;
 
@@ -89,7 +90,7 @@ pub fn run_cli() -> Result<(), String> {
 /// make html files
 pub fn generate_html(md_root_path: &Path, html_root_path: &Path) -> Result<(), String> {
     let mut page = page::read_dir_recursive(md_root_path)?;
-    page.inflate_html();
+    page.inflate_html(hashmap! {});
     page.make_html_file(html_root_path);
     run_server(html_root_path)?;
     Ok(())

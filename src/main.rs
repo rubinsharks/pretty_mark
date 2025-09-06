@@ -7,6 +7,8 @@ mod layout;
 mod markdown;
 mod option;
 mod common;
+mod yaml;
+mod test;
 
 fn main() -> Result<(), String> {
     cli::run_cli()

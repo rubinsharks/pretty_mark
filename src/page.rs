@@ -1,9 +1,12 @@
 use std::fs;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
+use maplit::hashmap;
+use toml_edit::Table;
+
 use crate::common::{copy_img_files_to_path, remove_code_indentation};
 use crate::file;
-use crate::layout::{self, toml_to_html};
+use crate::layout::{self, layouts_from_toml, toml_to_html};
 use crate::markdown::markdown_to_html;
 
 use std::collections::{HashMap, HashSet};
@@ -21,26 +24,22 @@ pub struct Page {
 }
 
 impl Page {
-    fn collect_tags(&self) -> HashSet<String> {
-        let mut tags = HashSet::new();
-
-        /// 현재 페이지의 태그를 추가
-        // if let Some(option) = &self.option {
-        //     if !option.basic.tags.is_empty() {
-        //         tags.extend(option.basic.tags.iter().cloned());
-        //     }
-        // }
-
-        // 하위 페이지들을 재귀적으로 탐색하여 태그 수집
+    pub fn print(&self, depth: usize) -> String {
+        let indent = "-".repeat(depth);
+        let mut filename = format!("{}{}\n", indent,
+            self.path
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("")
+        );
         for page in &self.pages {
-            let sub_page_tags = page.collect_tags();
-            tags.extend(sub_page_tags); // 하위 페이지에서 수집된 태그를 추가
+            filename.push_str(&page.print(depth + 1));
         }
-
-        tags
+        filename
     }
-
-    pub fn inflate_html(&mut self) {
+    
+    pub fn inflate_html(&mut self, layout_tables: HashMap<String, Table>) {
+        let mut layout_tables = layout_tables;
         if let Some(ext) = self.layout_path.extension() {
             println!("layout_path {:?}", ext);
             if ext == "md" {
@@ -53,7 +52,10 @@ impl Page {
                     }
                 }
             } else if ext == "toml" {
-                match toml_to_html(self.layout_path.as_path()) {
+                // TODO : key가 중복되는 상위 테이블 제거 
+                let layout_tables_local = layouts_from_toml(self.layout_path.as_path()).unwrap_or(hashmap! {});
+                layout_tables.extend(layout_tables_local);
+                match toml_to_html(self.layout_path.as_path(), layout_tables.clone()) {
                     Ok(html) => {
                         self.layout_html = html;
                     },
@@ -65,7 +67,7 @@ impl Page {
         }
         self.layout_html = remove_code_indentation(self.layout_html.clone());
         for page in &mut self.pages {
-            page.inflate_html();
+            page.inflate_html(layout_tables.clone());
         }
     }
 
@@ -103,15 +105,16 @@ impl Page {
 
 impl fmt::Display for Page {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.path.as_os_str())
+        write!(f, "{:?}", self.path.to_str().unwrap_or("")).unwrap();
+        Ok(())
     }
 }
 
 impl fmt::Debug for Page {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{:?}", self.path.as_os_str()).unwrap();
+        writeln!(f, "{}", self.path.to_str().unwrap_or("")).unwrap();
         for page in &self.pages {
-            print!("{:?}", page);
+            writeln!(f, "{:?}", page).unwrap();
         }
         Ok(())
     }
@@ -133,6 +136,8 @@ pub fn read_dir_recursive(path: &Path) -> Result<Page, String> {
         title,
         pages: vec![],
     };
+
+    
 
     for path in paths.filter_map(|x| x.ok()) {
         let path = path.path();
@@ -162,6 +167,17 @@ pub fn find_index_path(path: &Path) -> Result<Option<PathBuf>, String> {
         .or_else(|| index_paths.iter().find(|p| p.file_name() == Some("index.md".as_ref())))
         .cloned(); // <-- 여기서 &PathBuf → PathBuf로 복사
     Ok(selected)
+}
+
+pub fn find_md_paths_except_index(path: &Path) -> Result<Vec<PathBuf>, String> {
+    let md_paths = file::find_all_ext_files(path, |ext| {
+       ext == "md"
+    })?;
+    let filtered = md_paths
+        .into_iter()
+        .filter(|p| p.file_name().map_or(true, |f| f != "index.md"))
+        .collect();
+    Ok(filtered)
 }
 
 pub fn find_title(path: &Path) -> Result<String, String> {

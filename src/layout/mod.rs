@@ -1,15 +1,25 @@
-use std::path::Path;
-use common::get_tomlview_for_key;
+use std::{collections::HashMap, path::Path};
+use common::{get_layout_tables_except_key, get_tomlview_for_key};
+use toml_edit::Table;
 
 mod padding;
 mod view;
-mod common;
+pub mod common;
 mod svg;
 mod nav;
 
-pub fn toml_to_html(index_path: &Path) -> Result<String, String> {
-    let view = get_tomlview_for_key(index_path, "root", None, None)?;
+pub fn toml_to_html(layout_path: &Path, layout_tables: HashMap<String, Table>) -> Result<String, String> {
+
+    for (key, value) in layout_tables.clone() {
+        println!("!!@ key: {}, value: {}", key, value);
+    };
+    let view = get_tomlview_for_key(layout_path, "root", None, None, layout_tables)?;
     let html_view = view.htmlview(None).wrap_body(view.dark());
     let html = html_view.html();
     return Ok(html);
+}
+
+pub fn layouts_from_toml(index_path: &Path) -> Result<HashMap<String, Table>, String> {
+    let tables = get_layout_tables_except_key(index_path, "root")?;
+    Ok(tables)
 }

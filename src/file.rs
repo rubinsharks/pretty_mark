@@ -4,6 +4,7 @@ use std::fs;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
+use glob::glob;
 
 pub fn read_first_non_empty_line(path: &Path) -> Result<String, &'static str> {
     let file = fs::File::open(path).ok().ok_or("failed to open")?;
@@ -58,4 +59,25 @@ pub fn get_file_timestamps(path: &Path) -> io::Result<(Option<SystemTime>, Optio
     let modified = metadata.modified().ok(); // 일반적으로 지원됨
 
     Ok((created, modified))
+}
+
+pub fn find_files(pattern: &str, base_path: &Path) -> Vec<PathBuf> {
+    println!("find_files pattern: {}", pattern);
+    let mut results = Vec::new();
+
+    // base_path + pattern (예: /tmp/*.md)
+    let full_pattern = base_path.join(pattern).to_string_lossy().to_string();
+
+    for entry in glob(&full_pattern).expect("Invalid glob pattern") {
+        match entry {
+            Ok(path) => {
+                if !path.is_dir() {
+                    results.push(path)
+                }
+            },
+            Err(e) => eprintln!("Glob error: {:?}", e),
+        }
+    }
+
+    results
 }

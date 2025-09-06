@@ -1,8 +1,10 @@
+use crate::file::find_files;
 use crate::html::{filter_attrs, HTMLView};
 use crate::layout::nav::make_nav;
-use crate::markdown::markdown_to_htmlview;
+use crate::markdown::{markdown_to_htmlview, metas_table_from_markdown};
 use crate::page::Page;
 use std::collections::HashMap;
+use std::fmt::{self, Formatter};
 use std::path::{Path, PathBuf};
 use toml_edit::InlineTable;
 use toml_edit::{value, DocumentMut, Item, Table, Value};
@@ -14,6 +16,23 @@ use super::common::item_to_string;
 use super::common::item_to_strings;
 use super::common::table_to_tomlview;
 use super::padding::PaddingType;
+
+impl fmt::Display for dyn TOMLView {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{:?}", self.index_path().to_str().unwrap_or("")).unwrap();
+        Ok(())
+    }
+}
+
+impl fmt::Debug for dyn TOMLView {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{}, {} - {}", self.index_path().to_str().unwrap_or(""), self.key(), self.shape()).unwrap();
+        for view in self.views() {
+            writeln!(f, "{:?}", view).unwrap();
+        }
+        Ok(())
+    }
+}
 
 pub trait TOMLView: Any {
     fn as_any(&self) -> &dyn Any;
@@ -57,7 +76,7 @@ pub struct ColumnView {
 }
 
 impl ColumnView {
-    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, is_scroll: bool) -> ColumnView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> ColumnView {
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
         
@@ -94,7 +113,7 @@ impl ColumnView {
             .iter()
             .filter_map(|(k, v)| {
                 if let Item::Table(inner_table) = v {
-                    match table_to_tomlview(index_path, k, inner_table, value, Some(&view)) {
+                    match table_to_tomlview(index_path, k, inner_table, value, Some(&view), layout_tables.clone()) {
                         Ok(view) => Some(view),
                         Err(_) => None,
                     }
@@ -247,7 +266,7 @@ pub struct RowView {
 }
 
 impl RowView {
-    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, is_scroll: bool) -> RowView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> RowView {
 
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
@@ -284,7 +303,7 @@ impl RowView {
             .iter()
             .filter_map(|(k, v)| {
                 if let Item::Table(inner_table) = v {
-                    match table_to_tomlview(index_path, k, inner_table, value, Some(&view)) {
+                    match table_to_tomlview(index_path, k, inner_table, value, Some(&view), layout_tables.clone()) {
                         Ok(view) => Some(view),
                         Err(_) => None,
                     }
@@ -434,7 +453,7 @@ pub struct BoxView {
 }
 
 impl BoxView {
-    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>) -> BoxView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> BoxView {
 
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
@@ -470,7 +489,7 @@ impl BoxView {
             .iter()
             .filter_map(|(k, v)| {
                 if let Item::Table(inner_table) = v {
-                    match table_to_tomlview(index_path, k, inner_table, value, Some(&view)) {
+                    match table_to_tomlview(index_path, k, inner_table, value, Some(&view), layout_tables.clone()) {
                         Ok(view) => Some(view),
                         Err(_) => None,
                     }
@@ -613,7 +632,7 @@ pub struct TextView {
 }
 
 impl TextView {
-    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>) -> TextView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> TextView {
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -745,7 +764,7 @@ pub struct ImageView {
 }
 
 impl ImageView {
-    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>) -> ImageView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> ImageView {
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -860,7 +879,7 @@ pub struct NavView {
 }
 
 impl NavView {
-    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>) -> NavView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> NavView {
         let headers_map = get_items(&table, vec!["key", "shape", "width", "height", "background", "title", "values", "path", "dark"]);
 
         let default_dark = super_view
@@ -945,7 +964,7 @@ pub struct ListColumnView {
 }
 
 impl ListColumnView {
-    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, is_scroll: bool) -> ListColumnView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> ListColumnView {
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -986,7 +1005,7 @@ impl ListColumnView {
                 values
                     .iter()
                     .filter_map(|v| if let Value::InlineTable(tbl) = v { Some(tbl) } else { None })
-                    .filter_map(|tbl| layout_to_tomlview(layout.clone(), index_path, Some(tbl), Some(&view)).ok())
+                    .filter_map(|tbl| layout_to_tomlview(&view, layout.clone(), layout_tables.clone(), Some(tbl)).ok())
             );
         }
 
@@ -1133,7 +1152,7 @@ pub struct ListRowView {
 }
 
 impl ListRowView {
-    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, is_scroll: bool) -> ListRowView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> ListRowView {
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -1173,7 +1192,7 @@ impl ListRowView {
                 values
                     .iter()
                     .filter_map(|v| if let Value::InlineTable(tbl) = v { Some(tbl) } else { None })
-                    .filter_map(|tbl| layout_to_tomlview(layout.clone(), index_path, Some(tbl), Some(&view)).ok())
+                    .filter_map(|tbl| layout_to_tomlview(&view, layout.clone(), layout_tables.clone(), Some(tbl)).ok())
             );
         }
 
@@ -1300,6 +1319,389 @@ impl AllocationView for ListRowView {
     }
 }
 
+pub struct MarkdownListColumnView {
+    index_path: PathBuf,
+    key: String,
+    width: String,
+    height: String,
+    background: String,
+    path: String,
+    is_scroll: bool,
+    left_outer_padding: String,
+    top_outer_padding: String,
+    right_outer_padding: String,
+    bottom_outer_padding: String,
+    inner_padding: String,
+    fixed: String,
+    value: Option<InlineTable>,
+    dark: bool,
+    views: Vec<Box<dyn TOMLView>>,
+}
+
+impl MarkdownListColumnView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> MarkdownListColumnView {
+        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
+        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
+
+        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
+        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
+        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
+        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
+
+
+        let default_dark = super_view
+            .and_then(|x| Some(x.dark()))
+            .unwrap_or(false);
+        let dark = item_to_bool(&table, "dark", default_dark, value);
+
+        let mut view = MarkdownListColumnView {
+            index_path: index_path.to_path_buf(),
+            key: key.to_string(),
+            width: item_to_string(&table, "width", "0px", value),
+            height: item_to_string(&table, "height", "0px", value),
+            background: item_to_string(&table, "background", "transparent", value),
+            path: item_to_string(&table, "path", "", value),
+            is_scroll,
+            left_outer_padding,
+            top_outer_padding,
+            right_outer_padding,
+            bottom_outer_padding,
+            inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            fixed: item_to_string(&table, "fixed", "", value),
+            value: value.cloned(),
+            dark: dark,
+            views: vec![],
+        };
+
+        let layout = item_to_string(&table, "layout", "", value);
+        let mut views: Vec<Box<dyn TOMLView>> = vec![];
+
+        let index_folder = index_path.parent().unwrap_or(index_path);
+        let files = item_to_string(&table, "files", "", value);
+        let file_paths = find_files(files.as_str(), index_folder);
+        
+        views.extend(
+            file_paths
+                .iter()
+                .filter_map(|v| metas_table_from_markdown(v.as_path()).ok() )
+                .filter_map(|tbl| layout_to_tomlview(&view, layout.clone(), layout_tables.clone(), Some(&tbl)).ok())
+        );
+
+        view.views = views;
+        view
+    }
+}
+
+impl TOMLView for MarkdownListColumnView {
+    fn index_path(&self) -> PathBuf {
+        return self.index_path.clone()
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn shape(&self) -> String {
+        if self.is_scroll {
+            return "list_column".to_string();
+        }
+        return "list_column".to_string();
+    }
+    fn key(&self) -> String {
+        return self.key.clone();
+    }
+    fn width(&self) -> String {
+        return self.width.clone();
+    }
+    fn height(&self) -> String {
+        return self.height.clone();
+    }
+    fn background(&self) -> String {
+        return self.background.clone();
+    }
+    fn path(&self) -> String {
+        return self.path.clone();
+    }
+    fn dark(&self) -> bool {
+        return self.dark;
+    }
+    fn views(&self) -> &Vec<Box<dyn TOMLView>> {
+        return &self.views;
+    }
+    fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {
+        let views = self.views.iter().map(|x| x.htmlview(Some(self))).collect();
+
+        let mut style_parts = vec![
+            format!("background:{}", self.background),
+            format!(
+                "padding:{} {} {} {}",
+                self.top_outer_padding,
+                self.right_outer_padding,
+                self.bottom_outer_padding,
+                self.left_outer_padding,
+            ),
+            "display:flex".to_string(),
+            "flex-direction:column".to_string(),
+        ];
+        if self.width != "0px" {
+            style_parts.push(format!("width:{}", self.width));
+        }
+        if self.height != "0px" {
+            style_parts.push(format!("height:{}", self.height));
+        }
+        if self.is_scroll {
+            style_parts.push("overflow-y: auto".to_string());
+        } else {
+            style_parts.push("overflow: hidden".to_string());
+        }
+        if !self.fixed.is_empty() {
+            style_parts.push(format!("position: fixed; {}: 0", self.fixed));
+        }
+
+        if !self.inner_padding.trim().is_empty() {
+            style_parts.push(format!("gap:{}", self.inner_padding));
+        }
+
+        let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
+
+        let mut attrs = HashMap::new();
+        attrs.insert("id".to_string(), self.key.clone());
+        attrs.insert("style".to_string(), style);
+
+        HTMLView {
+            tag: "div".to_string(),
+            attrs: attrs,
+            value: "".to_string(),
+            views: views,
+        }
+        .wrap_href(self.path.clone())
+    }
+    fn value(&self) -> Option<InlineTable> {
+        return self.value.clone();
+    }
+}
+
+impl AllocationView for MarkdownListColumnView {
+    fn fixed(&self) -> String {
+        return self.fixed.to_string();
+    }
+    fn set_inner_padding(&mut self, value: String) {
+        self.inner_padding = value;
+    }
+    fn set_outer_padding(&mut self, ptype: PaddingType, value: String) {
+        match ptype {
+            PaddingType::LEFT => self.left_outer_padding = value,
+            PaddingType::RIGHT => self.right_outer_padding = value,
+            PaddingType::TOP => self.top_outer_padding = value,
+            PaddingType::BOTTOM => self.bottom_outer_padding = value,
+            PaddingType::HORIZONTAL => {
+                self.left_outer_padding = value.clone();
+                self.right_outer_padding = value;
+            }
+            PaddingType::VERTICAL => {
+                self.top_outer_padding = value.clone();
+                self.bottom_outer_padding = value;
+            }
+            PaddingType::ALL => {
+                self.left_outer_padding = value.clone();
+                self.right_outer_padding = value.clone();
+                self.top_outer_padding = value.clone();
+                self.bottom_outer_padding = value
+            }
+        }
+    }
+}
+
+pub struct MarkdownListRowView {
+    index_path: PathBuf,
+    key: String,
+    width: String,
+    height: String,
+    background: String,
+    path: String,
+    is_scroll: bool,
+    left_outer_padding: String,
+    top_outer_padding: String,
+    right_outer_padding: String,
+    bottom_outer_padding: String,
+    inner_padding: String,
+    fixed: String,
+    value: Option<InlineTable>,
+    dark: bool,
+    views: Vec<Box<dyn TOMLView>>,
+}
+
+impl MarkdownListRowView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> MarkdownListRowView {
+        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
+        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
+
+        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
+        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
+        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
+        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
+
+        let default_dark = super_view
+            .and_then(|x| Some(x.dark()))
+            .unwrap_or(false);
+        let dark = item_to_bool(&table, "dark", default_dark, value);
+
+        let mut view = MarkdownListRowView {
+            index_path: index_path.to_path_buf(),
+            key: key.to_string(),
+            width: item_to_string(&table, "width", "0px", value),
+            height: item_to_string(&table, "height", "0px", value),
+            background: item_to_string(&table, "background", "transparent", value),
+            path: item_to_string(&table, "path", "", value),
+            is_scroll,
+            left_outer_padding,
+            top_outer_padding,
+            right_outer_padding,
+            bottom_outer_padding,
+            inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            fixed: item_to_string(&table, "fixed", "", value),
+            value: value.cloned(),
+            dark: dark,
+            views: vec![],
+        };
+
+        let layout = item_to_string(&table, "layout", "", value);
+        let mut views: Vec<Box<dyn TOMLView>> = vec![];
+
+        let index_folder = index_path.parent().unwrap_or(index_path);
+        let files = item_to_string(&table, "files", "", value);
+        let file_paths = find_files(files.as_str(), index_folder);
+
+        println!("-- mdlist_row -- {}", layout_tables.iter().count());
+        views.extend(
+            file_paths
+                .iter()
+                .filter_map(|v| metas_table_from_markdown(v.as_path()).ok() )
+                .filter_map(|tbl| layout_to_tomlview(&view, layout.clone(), layout_tables.clone(), Some(&tbl)).ok())
+        );
+        println!("-- mdlist_row -- {}", views.iter().count());
+
+        view.views = views;
+        view
+    }
+}
+
+impl TOMLView for MarkdownListRowView {
+    fn index_path(&self) -> PathBuf {
+        return self.index_path.clone()
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn shape(&self) -> String {
+        if self.is_scroll {
+            return "list_row".to_string();
+        }
+        return "list_row".to_string();
+    }
+    fn key(&self) -> String {
+        return self.key.clone();
+    }
+    fn width(&self) -> String {
+        return self.width.clone();
+    }
+    fn height(&self) -> String {
+        return self.height.clone();
+    }
+    fn background(&self) -> String {
+        return self.background.clone();
+    }
+    fn path(&self) -> String {
+        return self.path.clone();
+    }
+    fn dark(&self) -> bool {
+        return self.dark;
+    }
+    fn views(&self) -> &Vec<Box<dyn TOMLView>> {
+        return &self.views;
+    }
+    fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {
+        let views = self.views.iter().map(|x| x.htmlview(Some(self))).collect();
+
+        let mut style_parts = vec![
+            format!("background:{}", self.background),
+            format!(
+                "padding:{} {} {} {}",
+                self.top_outer_padding,
+                self.right_outer_padding,
+                self.bottom_outer_padding,
+                self.left_outer_padding,
+            ),
+            "display:flex".to_string(),
+            "flex-direction:row".to_string(),
+        ];
+        if self.width != "0px" {
+            style_parts.push(format!("width:{}", self.width));
+        }
+        if self.height != "0px" {
+            style_parts.push(format!("height:{}", self.height));
+        }
+        if self.is_scroll {
+            style_parts.push("overflow-x: auto".to_string());
+        } else {
+            style_parts.push("overflow: hidden".to_string());
+        }
+        if !self.fixed.is_empty() {
+            style_parts.push(format!("position: fixed; {}: 0", self.fixed));
+        }
+
+        if !self.inner_padding.trim().is_empty() {
+            style_parts.push(format!("gap:{}", self.inner_padding));
+        }
+
+        let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
+
+        let mut attrs = HashMap::new();
+        attrs.insert("id".to_string(), self.key.clone());
+        attrs.insert("style".to_string(), style);
+
+        HTMLView {
+            tag: "div".to_string(),
+            attrs: attrs,
+            value: "".to_string(),
+            views: views,
+        }
+        .wrap_href(self.path.clone())
+    }
+    fn value(&self) -> Option<InlineTable> {
+        return self.value.clone();
+    }
+}
+
+impl AllocationView for MarkdownListRowView {
+    fn fixed(&self) -> String {
+        return self.fixed.to_string();
+    }
+    fn set_inner_padding(&mut self, value: String) {
+        self.inner_padding = value;
+    }
+    fn set_outer_padding(&mut self, ptype: PaddingType, value: String) {
+        match ptype {
+            PaddingType::LEFT => self.left_outer_padding = value,
+            PaddingType::RIGHT => self.right_outer_padding = value,
+            PaddingType::TOP => self.top_outer_padding = value,
+            PaddingType::BOTTOM => self.bottom_outer_padding = value,
+            PaddingType::HORIZONTAL => {
+                self.left_outer_padding = value.clone();
+                self.right_outer_padding = value;
+            }
+            PaddingType::VERTICAL => {
+                self.top_outer_padding = value.clone();
+                self.bottom_outer_padding = value;
+            }
+            PaddingType::ALL => {
+                self.left_outer_padding = value.clone();
+                self.right_outer_padding = value.clone();
+                self.top_outer_padding = value.clone();
+                self.bottom_outer_padding = value
+            }
+        }
+    }
+}
+
 pub struct MarkdownView {
     index_path: PathBuf,
     key: String,
@@ -1321,7 +1723,7 @@ pub struct MarkdownView {
 }
 
 impl MarkdownView {
-    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, is_scroll: bool) -> MarkdownView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> MarkdownView {
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -1456,6 +1858,314 @@ impl TOMLView for MarkdownView {
             attrs: attrs,
             value: "".to_string(),
             views: vec![markdown_view],
+        }
+        .wrap_href(self.path.clone())
+    }
+    fn value(&self) -> Option<InlineTable> {
+        return self.value.clone();
+    }
+}
+
+pub struct GridView {
+    index_path: PathBuf,
+    key: String,
+    width: String,
+    height: String,
+    background: String,
+    path: String,
+    is_scroll: bool,
+    left_outer_padding: String,
+    top_outer_padding: String,
+    right_outer_padding: String,
+    bottom_outer_padding: String,
+    inner_padding: String,
+    fixed: String,
+    row_count: String,
+    value: Option<InlineTable>,
+    dark: bool,
+    views: Vec<Box<dyn TOMLView>>,
+}
+
+impl GridView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> GridView {
+        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
+        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
+
+        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
+        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
+        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
+        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
+
+        let default_dark = super_view
+            .and_then(|x| Some(x.dark()))
+            .unwrap_or(false);
+        let dark = item_to_bool(&table, "dark", default_dark, value);
+
+        let mut view = GridView {
+            index_path: index_path.to_path_buf(),
+            key: key.to_string(),
+            width: item_to_string(&table, "width", "0px", value),
+            height: item_to_string(&table, "height", "0px", value),
+            background: item_to_string(&table, "background", "transparent", value),
+            path: item_to_string(&table, "path", "", value),
+            is_scroll,
+            left_outer_padding,
+            top_outer_padding,
+            right_outer_padding,
+            bottom_outer_padding,
+            inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            fixed: item_to_string(&table, "fixed", "", value),
+            row_count: item_to_string(&table, "row_count", "", value),
+            value: value.cloned(),
+            dark: dark,
+            views: vec![],
+        };
+
+        let layout = item_to_string(&table, "layout", "", value);
+        let mut views: Vec<Box<dyn TOMLView>> = vec![];
+        // if let Some(values) = table.get("values").and_then(|item| item.as_array()) {
+        //     views.extend(
+        //         values
+        //             .iter()
+        //             .filter_map(|v| if let Value::InlineTable(tbl) = v { Some(tbl) } else { None })
+        //             .filter_map(|tbl| layout_to_tomlview(layout.clone(), index_path, Some(tbl), Some(&view)).ok())
+        //     );
+        // }
+
+        view.views = views;
+        view
+    }
+}
+
+impl TOMLView for GridView {
+    fn index_path(&self) -> PathBuf {
+        return self.index_path.clone()
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn shape(&self) -> String {
+        if self.is_scroll {
+            return "grid".to_string();
+        }
+        return "grid".to_string();
+    }
+    fn key(&self) -> String {
+        return self.key.clone();
+    }
+    fn width(&self) -> String {
+        return self.width.clone();
+    }
+    fn height(&self) -> String {
+        return self.height.clone();
+    }
+    fn background(&self) -> String {
+        return self.background.clone();
+    }
+    fn path(&self) -> String {
+        return self.path.clone();
+    }
+    fn dark(&self) -> bool {
+        return self.dark;
+    }
+    fn views(&self) -> &Vec<Box<dyn TOMLView>> {
+        return &self.views;
+    }
+    fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {
+        let views = self.views.iter().map(|x| x.htmlview(Some(self))).collect();
+
+        let mut style_parts = vec![
+            format!("background:{}", self.background),
+            format!(
+                "padding:{} {} {} {}",
+                self.top_outer_padding,
+                self.right_outer_padding,
+                self.bottom_outer_padding,
+                self.left_outer_padding,
+            ),
+            "display:flex".to_string(),
+            "flex-direction:row".to_string(),
+        ];
+        if self.width != "0px" {
+            style_parts.push(format!("width:{}", self.width));
+        }
+        if self.height != "0px" {
+            style_parts.push(format!("height:{}", self.height));
+        }
+        if self.is_scroll {
+            style_parts.push("overflow-x: auto".to_string());
+        } else {
+            style_parts.push("overflow: hidden".to_string());
+        }
+        if !self.fixed.is_empty() {
+            style_parts.push(format!("position: fixed; {}: 0", self.fixed));
+        }
+
+        if !self.inner_padding.trim().is_empty() {
+            style_parts.push(format!("gap:{}", self.inner_padding));
+        }
+
+        let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
+
+        let mut attrs = HashMap::new();
+        attrs.insert("id".to_string(), self.key.clone());
+        attrs.insert("style".to_string(), style);
+
+        HTMLView {
+            tag: "div".to_string(),
+            attrs: attrs,
+            value: "".to_string(),
+            views: views,
+        }
+        .wrap_href(self.path.clone())
+    }
+    fn value(&self) -> Option<InlineTable> {
+        return self.value.clone();
+    }
+}
+
+pub struct EmbedView {
+    index_path: PathBuf,
+    key: String,
+    width: String,
+    height: String,
+    background: String,
+    path: String,
+    is_scroll: bool,
+    left_outer_padding: String,
+    top_outer_padding: String,
+    right_outer_padding: String,
+    bottom_outer_padding: String,
+    inner_padding: String,
+    fixed: String,
+    value: Option<InlineTable>,
+    dark: bool,
+    views: Vec<Box<dyn TOMLView>>,
+}
+
+impl EmbedView {
+    pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> EmbedView {
+        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
+        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
+
+        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
+        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
+        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
+        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
+
+        let default_dark = super_view
+            .and_then(|x| Some(x.dark()))
+            .unwrap_or(false);
+        let dark = item_to_bool(&table, "dark", default_dark, value);
+
+        let mut view = EmbedView {
+            index_path: index_path.to_path_buf(),
+            key: key.to_string(),
+            width: item_to_string(&table, "width", "0px", value),
+            height: item_to_string(&table, "height", "0px", value),
+            background: item_to_string(&table, "background", "transparent", value),
+            path: item_to_string(&table, "path", "", value),
+            is_scroll,
+            left_outer_padding,
+            top_outer_padding,
+            right_outer_padding,
+            bottom_outer_padding,
+            inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            fixed: item_to_string(&table, "fixed", "", value),
+            value: value.cloned(),
+            dark: dark,
+            views: vec![],
+        };
+
+        let layout = item_to_string(&table, "layout", "", value);
+
+        if let Some(layout_view) = layout_tables.iter()
+            .filter_map(|(key, x)| table_to_tomlview(index_path, key, x, value, Some(&view), layout_tables.clone()).ok())
+            .filter(|x| x.key() == layout)
+            .next() {
+                view.views = vec![layout_view];
+            }
+        view
+    }
+}
+
+impl TOMLView for EmbedView {
+    fn index_path(&self) -> PathBuf {
+        return self.index_path.clone()
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn shape(&self) -> String {
+        if self.is_scroll {
+            return "embed".to_string();
+        }
+        return "embed".to_string();
+    }
+    fn key(&self) -> String {
+        return self.key.clone();
+    }
+    fn width(&self) -> String {
+        return self.width.clone();
+    }
+    fn height(&self) -> String {
+        return self.height.clone();
+    }
+    fn background(&self) -> String {
+        return self.background.clone();
+    }
+    fn path(&self) -> String {
+        return self.path.clone();
+    }
+    fn dark(&self) -> bool {
+        return self.dark;
+    }
+    fn views(&self) -> &Vec<Box<dyn TOMLView>> {
+        return &self.views;
+    }
+    fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {
+        let views = self.views.iter().map(|x| x.htmlview(Some(self))).collect();
+
+        let mut style_parts = vec![
+            format!("background:{}", self.background),
+            format!(
+                "padding:{} {} {} {}",
+                self.top_outer_padding,
+                self.right_outer_padding,
+                self.bottom_outer_padding,
+                self.left_outer_padding,
+            ),
+        ];
+        if self.width != "0px" {
+            style_parts.push(format!("width:{}", self.width));
+        }
+        if self.height != "0px" {
+            style_parts.push(format!("height:{}", self.height));
+        }
+        if self.is_scroll {
+            style_parts.push("overflow-x: auto".to_string());
+        } else {
+            style_parts.push("overflow: hidden".to_string());
+        }
+        if !self.fixed.is_empty() {
+            style_parts.push(format!("position: fixed; {}: 0", self.fixed));
+        }
+
+        if !self.inner_padding.trim().is_empty() {
+            style_parts.push(format!("gap:{}", self.inner_padding));
+        }
+
+        let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
+
+        let mut attrs = HashMap::new();
+        attrs.insert("id".to_string(), self.key.clone());
+        attrs.insert("style".to_string(), style);
+
+        HTMLView {
+            tag: "div".to_string(),
+            attrs: attrs,
+            value: "".to_string(),
+            views: views,
         }
         .wrap_href(self.path.clone())
     }

@@ -4,6 +4,7 @@ use maplit::hashmap;
 use toml_edit::{Item, Table};
 use crate::html::{filter_attrs, HTMLView};
 use super::svg::{svg_dropdown, svg_menu};
+use crate::common::SlashNormalize;
 
 
 pub fn make_nav_sub_menus(title: String, sub_menus: &Table, is_dark: bool) -> HTMLView {
@@ -18,7 +19,7 @@ pub fn make_nav_sub_menus(title: String, sub_menus: &Table, is_dark: bool) -> HT
       .iter()
       .map(|(key, value)| 
           HTMLView::new("a", hashmap!{
-              "href".to_string() => value.as_str().unwrap_or("").to_string(),
+              "href".to_string() => value.as_str().unwrap_or("").ensure_slashes(),
               "class".to_string() => filter_attrs("block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white", is_dark)
           }, key, vec![]).wrap_tag("li", hashmap! {})
       )
@@ -41,7 +42,7 @@ pub fn make_nav(title: String, menus: Vec<String>, sub_menus: HashMap<String, It
           if let Some(sub) = sub_menus.get(menu) {
               if let Item::Value(value) = sub {
                   HTMLView::new("a", hashmap! {
-                      "href".to_string() => value.as_str().unwrap_or("").to_string(),
+                      "href".to_string() => value.as_str().unwrap_or("").ensure_slashes(),
                       "class".to_string() => filter_attrs("block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent", is_dark),
                       "aria-current".to_string() => "page".to_string()
                   }, menu, vec![])

@@ -28,7 +28,7 @@ impl fmt::Debug for dyn TOMLView {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}, {} - {}", self.index_path().to_str().unwrap_or(""), self.key(), self.shape()).unwrap();
         for view in self.views() {
-            writeln!(f, "{:?}", view).unwrap();
+            write!(f, "{:?}", view).unwrap();
         }
         Ok(())
     }
@@ -936,7 +936,6 @@ impl TOMLView for NavView {
         return &self.views;
     }
     fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {  
-        println!("headers_map {:?}", self.headers_map);
         make_nav(self.title.clone(), self.headers.clone(), self.headers_map.clone(), self.dark)
     }
     fn value(&self) -> Option<InlineTable> {
@@ -1369,7 +1368,7 @@ impl MarkdownListColumnView {
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
-            dark: dark,
+            dark,
             views: vec![],
         };
 
@@ -1401,9 +1400,9 @@ impl TOMLView for MarkdownListColumnView {
     }
     fn shape(&self) -> String {
         if self.is_scroll {
-            return "list_column".to_string();
+            return "mdlist_column".to_string();
         }
-        return "list_column".to_string();
+        return "mdlist_column".to_string();
     }
     fn key(&self) -> String {
         return self.key.clone();
@@ -1559,7 +1558,7 @@ impl MarkdownListRowView {
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
-            dark: dark,
+            dark,
             views: vec![],
         };
 
@@ -1570,14 +1569,12 @@ impl MarkdownListRowView {
         let files = item_to_string(&table, "files", "", value);
         let file_paths = find_files(files.as_str(), index_folder);
 
-        println!("-- mdlist_row -- {}", layout_tables.iter().count());
         views.extend(
             file_paths
                 .iter()
                 .filter_map(|v| metas_table_from_markdown(v.as_path()).ok() )
                 .filter_map(|tbl| layout_to_tomlview(&view, layout.clone(), layout_tables.clone(), Some(&tbl)).ok())
         );
-        println!("-- mdlist_row -- {}", views.iter().count());
 
         view.views = views;
         view
@@ -1593,9 +1590,9 @@ impl TOMLView for MarkdownListRowView {
     }
     fn shape(&self) -> String {
         if self.is_scroll {
-            return "list_row".to_string();
+            return "mdlist_row".to_string();
         }
-        return "list_row".to_string();
+        return "mdlist_row".to_string();
     }
     fn key(&self) -> String {
         return self.key.clone();

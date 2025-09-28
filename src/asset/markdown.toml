@@ -1,0 +1,19 @@
+
+[root]
+shape = "column" 
+width = "100%"
+height = "100%"
+dark = true
+
+[root.header]
+shape = "embed"
+layout = "{header}"
+
+[root.contents]
+shape = "column"
+width = "100%"
+height = "wrap"
+
+[root.footer]
+shape = "embed"
+layout = "{footer}"

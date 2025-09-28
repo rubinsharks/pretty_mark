@@ -2,24 +2,48 @@ use std::{collections::HashMap, fs::{self, File}, path::Path};
 
 use parser::{get_node_for_markdown, node_to_html};
 use serde_yaml::Value;
-use toml_edit::InlineTable;
+use toml_edit::{InlineTable, Table};
 
-use crate::{html::HTMLView, yaml::yaml_hashmap_to_inline_table};
+use crate::{html::HTMLView, layout::{common::{get_tomlview_for_key, layout_to_tomlview}, toml_to_html}, yaml::yaml_hashmap_to_inline_table};
 pub mod parser;
 pub mod common;
 
-pub fn markdown_to_htmlview(index_path: &Path, is_dark: bool) -> Result<HTMLView, &'static str> {
-    let node = get_node_for_markdown(index_path)?;
+pub fn markdown_to_htmlview(md_path: &Path, is_dark: bool) -> Result<HTMLView, String> {
+    let node = get_node_for_markdown(md_path)?;
     let htmlview = node_to_html(&node, None, None, is_dark);
     Ok(htmlview)
 }
 
-pub fn markdown_to_html(index_path: &Path) -> Result<String, &'static str> {
-    let is_dark = true;
-    let html_view = markdown_to_htmlview(index_path, is_dark)?.wrap_body(is_dark);
-    let html = html_view.html();
-    return Ok(html);
+pub fn markdown_wrap_to_htmlview(md_path: &Path, layout_tables: HashMap<String, Table>) -> Result<HTMLView, String> {
+    let md_wrap_path = Path::new("src/asset/markdown.toml");
+    let metas = metas_table_from_markdown(md_path)
+        .unwrap_or_else(|_| InlineTable::new());
+
+    let view = get_tomlview_for_key(md_wrap_path, "root", Some(&metas), None, layout_tables)?;
+    let md_html_view = markdown_to_htmlview(md_path, view.dark())?;
+
+    let html_view = view.htmlview(None)
+        .inflate_view("contents", md_html_view)
+        .wrap_body(view.dark());
+    Ok(html_view)
 }
+
+pub fn markdown_wrap_to_html(md_path: &Path, layout_tables: HashMap<String, Table>) -> Result<String, String> {
+    let html_view = markdown_wrap_to_htmlview(md_path, layout_tables)?;
+    let html = html_view.html();
+    Ok(html)
+}
+
+// pub fn markdown_to_html(layout_path: &Path, layout_tables: HashMap<String, Table>) -> Result<String, String> {
+//     let view = toml_to_html(layout_path, layout_tables.clone());
+//     let is_dark = true;
+//     let html_view = markdown_to_htmlview(layout_path, is_dark)?.wrap_body(is_dark);
+
+//     // let metas = metas_table_from_markdown(layout_path)?;
+//     // let html_view = add_meta_layout_to_html_view(html_view, metas, layout_tables)?;
+//     let html = html_view.html();
+//     return Ok(html);
+// }
 
 pub fn metas_table_from_markdown(index_path: &Path) -> Result<InlineTable, String> {
     let content = fs::read_to_string(index_path)

@@ -1,4 +1,6 @@
+use core::fmt;
 use std::collections::HashMap;
+use std::fmt::Formatter;
 use maplit::hashmap;
 use crate::option::MDOption;
 use std::fs::File;
@@ -16,6 +18,23 @@ pub fn filter_attrs(text: &str, is_dark: bool) -> String {
         return result
     }
     text.to_string()
+}
+
+impl fmt::Display for HTMLView {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} - {:?}", self.tag, self.attrs).unwrap();
+        Ok(())
+    }
+}
+
+impl fmt::Debug for HTMLView {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{:?} - {:?}", self.tag, self.attrs).unwrap();
+        for view in &self.views {
+            write!(f, "{:?}", view).unwrap();
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone)]
@@ -130,6 +149,41 @@ impl HTMLView {
             views: vec![self_view]
         };
         div_view
+    }
+
+    pub fn inflate_view(&mut self, key: &str, inflating_view: HTMLView) -> HTMLView {
+        for view in &mut self.views {
+            if view.attrs.get("id").map(|s| s.as_str()) == Some(key) {
+                view.views.push(inflating_view.clone());
+            }
+        }
+        self.clone() // 수정된 self 를 반환
+    }
+
+    pub fn insert_header_footer(&mut self, header: Option<HTMLView>, footer: Option<HTMLView>) -> Result<(), String> {
+        // body 노드 찾기
+        let body = self.find_body_mut().ok_or("body tag not found")?;
+
+        if let Some(h) = header {
+            body.views.insert(0, h);
+        }
+        if let Some(f) = footer {
+            body.views.push(f);
+        }
+
+        Ok(())
+    }
+
+    fn find_body_mut(&mut self) -> Option<&mut HTMLView> {
+        if self.tag == "body" {
+            return Some(self);
+        }
+        for child in &mut self.views {
+            if let Some(found) = child.find_body_mut() {
+                return Some(found);
+            }
+        }
+        None
     }
 }
 

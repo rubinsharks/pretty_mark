@@ -90,8 +90,8 @@ pub fn run_cli() -> Result<(), String> {
 /// make html files
 pub fn generate_html(md_root_path: &Path, html_root_path: &Path) -> Result<(), String> {
     let mut page = page::read_dir_recursive(md_root_path)?;
-    page.inflate_html(hashmap! {});
-    page.make_html_file(html_root_path);
+    page.inflate_html(hashmap! {})?;
+    page.make_html_file(html_root_path)?;
     run_server(html_root_path)?;
     Ok(())
 }

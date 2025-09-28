@@ -71,7 +71,7 @@ pub fn layout_to_tomlview(view: &dyn TOMLView, layout: String, layout_tables: Ha
         .filter_map(|(key, x)| table_to_tomlview(view.index_path().as_path(), key, x, value, Some(view), layout_tables.clone()).ok())
         .filter(|x| x.key() == layout)
         .next() {
-            println!("layout_to_tomlview shape: {:?} {:?}", layout_view.key(), layout_view.shape());
+            // println!("layout_to_tomlview shape: {:?} {:?}", layout_view.key(), layout_view.shape());
             return Ok(layout_view)
         }
     Err("Faild to load view in layout".to_string())
@@ -114,7 +114,7 @@ pub fn get_tomlview_for_key(index_path: &Path, find_key: &str, value: Option<&In
 
     for (k, v) in doc.as_table() {
         if let Item::Table(table) = v {
-            println!("key! {}", k);
+            println!("key! {} {:?}", k, index_path);
             if k == find_key {
                 let value = value.or_else(|| {
                     table.get("value").and_then(|item| item.as_inline_table())
@@ -138,7 +138,7 @@ pub fn get_tomlview_for_key(index_path: &Path, find_key: &str, value: Option<&In
 
 pub fn table_to_tomlview(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> Result<Box<dyn TOMLView>, String> {
     let shape = item_to_string(table, "shape", "", value);
-    println!("table_to_tomlview {:?} {:?}", key, shape);
+    // println!("table_to_tomlview {:?} {:?}", key, shape);
     match shape.as_str() {
         "nav" => {
             let nav_view = NavView::new(index_path, key, table, value, super_view, layout_tables);

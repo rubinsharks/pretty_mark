@@ -81,3 +81,16 @@ pub fn find_files(pattern: &str, base_path: &Path) -> Vec<PathBuf> {
 
     results
 }
+
+pub fn has_stem_dir(path: &Path) -> Result<bool, String> {
+    // 1️⃣ 확장자가 md인지 확인
+    if path.extension().and_then(|e| e.to_str()) != Some("md") {
+        return Err("only md file is available".to_string());
+    }
+
+    let stem = path.file_stem().and_then(|s| s.to_str()).ok_or("failed to get file stem")?;
+    let parent = path.parent().ok_or("failed to get parent")?;
+    let stem_dir: PathBuf = parent.join(stem);
+    
+    Ok(stem_dir.is_dir())
+}

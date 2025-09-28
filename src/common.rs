@@ -1,6 +1,7 @@
 use std::{fs, path::Path};
 
-
+/// ``` 코드 에 해당하는 부분들이 제대로 나타나지 않기 때문에
+/// 아래 코드로 완성된 코드를 재배치한다.
 pub fn remove_code_indentation(html: String) -> String {
     let code_tag_re = regex::Regex::new(r#"(<code[^>]*>)([\s\S]*?)</code>"#).unwrap();
 
@@ -74,4 +75,27 @@ pub fn copy_img_files_to_path(src_dir: &Path, dest_dir: &Path) -> Result<(), Str
   }
 
   Ok(())
+}
+
+pub trait SlashNormalize {
+    fn ensure_slashes(&self) -> String;
+}
+
+impl SlashNormalize for str {
+    fn ensure_slashes(&self) -> String {
+        let mut s = self.to_string();
+        if !s.starts_with('/') {
+            s.insert(0, '/');
+        }
+        if !s.ends_with('/') {
+            s.push('/');
+        }
+        s
+    }
+}
+
+impl SlashNormalize for String {
+    fn ensure_slashes(&self) -> String {
+        self.as_str().ensure_slashes()
+    }
 }

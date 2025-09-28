@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::Path};
-use common::{get_layout_tables_except_key, get_tomlview_for_key};
-use toml_edit::Table;
+use common::{get_layout_tables_except_key, get_tomlview_for_key, table_to_tomlview};
+use toml_edit::{value, Table};
 
 mod padding;
 mod view;
@@ -9,10 +9,6 @@ mod svg;
 mod nav;
 
 pub fn toml_to_html(layout_path: &Path, layout_tables: HashMap<String, Table>) -> Result<String, String> {
-
-    for (key, value) in layout_tables.clone() {
-        println!("!!@ key: {}, value: {}", key, value);
-    };
     let view = get_tomlview_for_key(layout_path, "root", None, None, layout_tables)?;
     let html_view = view.htmlview(None).wrap_body(view.dark());
     let html = html_view.html();

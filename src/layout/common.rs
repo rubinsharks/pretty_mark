@@ -78,7 +78,7 @@ pub fn layout_to_tomlview(view: &dyn TOMLView, layout: String, layout_tables: Ha
 }
 
 pub fn get_layout_tables_except_key(index_path: &Path, except_key: &str) -> Result<HashMap<String, Table>, String> {
-    let mut file = File::open(index_path).ok().ok_or("Failed to open the file")?;
+    let mut file = File::open(index_path).ok().ok_or(format!("Failed to open the file in layout_tables in {:?}", index_path)?;
 
     let mut config_str = String::new();
     file.read_to_string(&mut config_str)
@@ -101,7 +101,7 @@ pub fn get_layout_tables_except_key(index_path: &Path, except_key: &str) -> Resu
 }
 
 pub fn get_tomlview_for_key(index_path: &Path, find_key: &str, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> Result<Box<dyn TOMLView>, String> {
-    let mut file = File::open(index_path).ok().ok_or("Failed to open the file")?;
+    let mut file = File::open(index_path).ok().ok_or(format!("Failed to open the file in tomlview {:?}", index_path))?;
 
     let mut config_str = String::new();
     file.read_to_string(&mut config_str)

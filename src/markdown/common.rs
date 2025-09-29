@@ -17,14 +17,17 @@ pub fn remove_frontmatter(input: &String) -> String {
     let mut result = Vec::new();
 
     for line in lines {
+        let trimmed = line.trim();
         if in_frontmatter {
-            let trimmed = line.trim();
             // frontmatter 끝나는 구분자도 '-'만 반복된 문자열
             if trimmed.chars().all(|c| c == '-') {
                 in_frontmatter = false;
             }
             continue; // frontmatter 줄은 무조건 건너뜀
         } else {
+            if trimmed.chars().all(|c| c == '-') {
+                continue;
+            }
             result.push(line);
         }
     }

@@ -12,6 +12,8 @@ layout = "{header}"
 shape = "column"
 width = "100%"
 height = "wrap"
+horizontal_padding = "20px"
+bottom_outer_padding = "80px"
 
 [root.footer]
 shape = "embed"

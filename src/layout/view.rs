@@ -2139,11 +2139,6 @@ impl TOMLView for EmbedView {
         if self.height != "0px" {
             style_parts.push(format!("height:{}", self.height));
         }
-        if self.is_scroll {
-            style_parts.push("overflow-x: auto".to_string());
-        } else {
-            style_parts.push("overflow: hidden".to_string());
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }

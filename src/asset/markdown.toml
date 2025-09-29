@@ -1,9 +1,8 @@
 
 [root]
-shape = "column" 
+shape = "scroll_column" 
 width = "100%"
 height = "100%"
-dark = true
 
 [root.header]
 shape = "embed"

@@ -62,7 +62,8 @@ impl Page {
         let mut markdowns_html: HashMap<PathBuf, String> = hashmap! {};
         for md_path in &self.markdowns {
             let view = markdown_wrap_to_htmlview(&md_path, layout_tables.clone())?;
-            markdowns_html.insert(md_path.clone(), view.html());
+            let html = remove_code_indentation(view.html());
+            markdowns_html.insert(md_path.clone(), html);
         }
         self.markdowns_html = markdowns_html; 
         

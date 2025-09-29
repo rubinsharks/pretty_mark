@@ -10,12 +10,15 @@ use std::path::Path;
 use crate::option::ThemeValue;
 use crate::option::MDOption;
 
+use super::common::remove_frontmatter;
+
 pub fn get_node_for_markdown(index_path: &Path) -> Result<Node, &'static str> {
     let mut file = File::open(&index_path).ok().ok_or("open fails")?;
-    let mut s = String::new();
-    file.read_to_string(&mut s).ok().ok_or("read fails")?;
+    let mut markdown_contents = String::new();
+    file.read_to_string(&mut markdown_contents).ok().ok_or("read fails")?;
+    let markdown_contents_removed_frontmatter = remove_frontmatter(&markdown_contents);
 
-    match markdown::to_mdast(&s, &markdown::ParseOptions::gfm()) {
+    match markdown::to_mdast(&markdown_contents_removed_frontmatter, &markdown::ParseOptions::gfm()) {
         Ok(node) => Ok(node),
         Err(message) => Err("no file"),
     }

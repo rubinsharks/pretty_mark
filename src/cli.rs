@@ -71,14 +71,14 @@ pub fn run_cli() -> Result<(), String> {
                 server::run_server(html_root_path)?;
             }
 
-            let mut input = String::new();
-            println!("텍스트를 입력하세요:");
+            // let mut input = String::new();
+            // println!("텍스트를 입력하세요:");
 
-            stdin()
-                .read_line(&mut input)
-                .expect("입력을 읽는 데 실패했습니다");
+            // stdin()
+            //     .read_line(&mut input)
+            //     .expect("입력을 읽는 데 실패했습니다");
 
-            println!("입력한 내용: {}", input);
+            // println!("입력한 내용: {}", input);
             Ok(())
         }
     }
@@ -92,7 +92,7 @@ pub fn generate_html(md_root_path: &Path, html_root_path: &Path) -> Result<(), S
     let mut page = page::read_dir_recursive(md_root_path)?;
     page.inflate_html(hashmap! {})?;
     page.make_html_file(html_root_path)?;
-    run_server(html_root_path)?;
+    // run_server(html_root_path)?;
     Ok(())
 }
 

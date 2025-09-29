@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::{self, File}, path::Path};
+use std::{collections::HashMap, env, fs::{self, File}, io::Write, path::{Path, PathBuf}};
 
 use parser::{get_node_for_markdown, node_to_html};
 use serde_yaml::Value;
@@ -8,6 +8,19 @@ use crate::{html::HTMLView, layout::{common::{get_tomlview_for_key, layout_to_to
 pub mod parser;
 pub mod common;
 
+const MARKDOWN_TOML: &str = include_str!("../asset/markdown.toml");
+
+fn get_markdown_path() -> Result<PathBuf, String> {
+    let mut file_path = std::env::temp_dir();
+    file_path.push("markdown.toml");
+
+    if !file_path.exists() {
+        fs::write(&file_path, MARKDOWN_TOML)
+            .map_err(|e| format!("파일 쓰기 실패: {}", e))?;
+    }
+    Ok(file_path)
+}
+
 pub fn markdown_to_htmlview(md_path: &Path, is_dark: bool) -> Result<HTMLView, String> {
     let node = get_node_for_markdown(md_path)?;
     let htmlview = node_to_html(&node, None, None, is_dark);
@@ -15,11 +28,11 @@ pub fn markdown_to_htmlview(md_path: &Path, is_dark: bool) -> Result<HTMLView, S
 }
 
 pub fn markdown_wrap_to_htmlview(md_path: &Path, layout_tables: HashMap<String, Table>) -> Result<HTMLView, String> {
-    let md_wrap_path = Path::new("src/asset/markdown.toml");
+    let md_wrap_path = get_markdown_path()?;
     let metas = metas_table_from_markdown(md_path)
         .unwrap_or_else(|_| InlineTable::new());
 
-    let view = get_tomlview_for_key(md_wrap_path, "root", Some(&metas), None, layout_tables)?;
+    let view = get_tomlview_for_key(md_wrap_path.as_path(), "root", Some(&metas), None, layout_tables)?;
     let md_html_view = markdown_to_htmlview(md_path, view.dark())?;
 
     let html_view = view.htmlview(None)

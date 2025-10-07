@@ -50,7 +50,6 @@ impl Page {
                 let html = markdown_wrap_to_html(layout_path, layout_tables.clone())?;
                 self.layout_html = html;
             } else if ext == "toml" {
-                // TODO : key가 중복되는 상위 테이블 제거 
                 let layout_tables_local = layouts_from_toml(layout_path).unwrap_or(hashmap! {});
                 layout_tables.extend(layout_tables_local);
                 let html = toml_to_html(layout_path, layout_tables.clone())?;

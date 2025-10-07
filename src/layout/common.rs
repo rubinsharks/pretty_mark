@@ -5,6 +5,7 @@ use maplit::hashmap;
 use toml_edit::{Array, DocumentMut, InlineTable, Item, Table, Value};
 use super::view::{BoxView, ColumnView, NavView, RowView, TOMLView, TextView};
 use crate::{html::HTMLView, layout::view::{EmbedView, GridView, ImageView, ListColumnView, ListRowView, MarkdownListColumnView, MarkdownListRowView, MarkdownView}};
+use regex::Regex;
 
 pub fn item_to_string(table: &Table, key: &str, default: &str, value: Option<&InlineTable>) -> String {
     let raw = table
@@ -12,14 +13,18 @@ pub fn item_to_string(table: &Table, key: &str, default: &str, value: Option<&In
         .and_then(|item| item.as_str())
         .unwrap_or(default);
 
-    // 중괄호 감싸진 형태인지 확인
-    if raw.starts_with('{') && raw.ends_with('}') {
-        if let Some(inline) = value {
-            let inner_key = &raw[1..raw.len() - 1]; // {} 제거
-            if let Some(val) = inline.get(inner_key).and_then(|v| v.as_str()) {
-                return val.to_string();
-            }
-        }
+    if let Some(inline) = value {
+        let re = Regex::new(r"\{([^}]+)\}").unwrap();
+        return re
+            .replace_all(raw, |caps: &regex::Captures| {
+                let inner_key = &caps[1]; // {key} 안쪽
+                inline
+                    .get(inner_key)
+                    .and_then(|v| v.as_str())
+                    .unwrap_or(caps.get(0).unwrap().as_str()) // 없으면 그대로 둠
+                    .to_string()
+            })
+            .to_string();
     }
 
     raw.to_string()

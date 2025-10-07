@@ -58,8 +58,8 @@ pub fn markdown_wrap_to_html(md_path: &Path, layout_tables: HashMap<String, Tabl
 //     return Ok(html);
 // }
 
-pub fn metas_table_from_markdown(index_path: &Path) -> Result<InlineTable, String> {
-    let content = fs::read_to_string(index_path)
+pub fn metas_table_from_markdown(md_path: &Path) -> Result<InlineTable, String> {
+    let content = fs::read_to_string(md_path)
         .expect("Failed to read the markdown file");
 
     let mut metadata = InlineTable::new();
@@ -92,7 +92,7 @@ pub fn metas_table_from_markdown(index_path: &Path) -> Result<InlineTable, Strin
 
     let yaml_str = yaml_lines.join("\n");
     
-    let file_name: String = index_path
+    let file_name: String = md_path
         .file_stem()          // Option<&OsStr>
         .and_then(|s| s.to_str()) // Option<&str>
         .map(|s| s.to_string())

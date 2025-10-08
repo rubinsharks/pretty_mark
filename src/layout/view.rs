@@ -1158,8 +1158,41 @@ impl TOMLView for NavView {
     fn views(&self) -> &Vec<Box<dyn TOMLView>> {
         return &self.views;
     }
-    fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {  
-        make_nav(self.title.clone(), self.headers.clone(), self.headers_map.clone(), self.dark)
+    fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView { 
+        let mut class_parts = vec![
+        ];
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
+        let class = class_parts.join(" ");
+
+        let mut attrs = HashMap::new();
+        attrs.insert("id".to_string(), self.key.clone());
+        attrs.insert("class".to_string(), class);
+        
+        let nav_view = make_nav(self.title.clone(), self.headers.clone(), self.headers_map.clone(), self.dark);
+        
+        HTMLView {
+            tag: "div".to_string(),
+            attrs: attrs,
+            value: "".to_string(),
+            views: vec![nav_view],
+        }
     }
     fn value(&self) -> Option<InlineTable> {
         return self.value.clone();

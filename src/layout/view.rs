@@ -94,8 +94,8 @@ impl ColumnView {
         let mut view = ColumnView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -179,12 +179,6 @@ impl TOMLView for ColumnView {
             "flex-direction:column".to_string(),
             "flex-shrink: 0".to_string(),
         ];
-        if self.width != "0px" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if self.is_scroll {
             style_parts.push("overflow-y: auto".to_string());
         } else {
@@ -200,10 +194,22 @@ impl TOMLView for ColumnView {
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
+        let mut class_parts = vec![
+            format!("items-{}", self.align_subs),
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        
+        let class = class_parts.join(" ");
+
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
-        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
+        attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "div".to_string(),
@@ -288,8 +294,8 @@ impl RowView {
         let mut view = RowView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -372,12 +378,6 @@ impl TOMLView for RowView {
             "flex-direction:row".to_string(),
             "flex-shrink: 0".to_string(),
         ];
-        if self.width != "0px" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if self.is_scroll {
             style_parts.push("overflow-x: auto".to_string());
         } else {
@@ -392,10 +392,21 @@ impl TOMLView for RowView {
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
+        let mut class_parts = vec![
+            format!("items-{}", self.align_subs),
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
+
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
-        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
+        attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "div".to_string(),
@@ -479,8 +490,8 @@ impl BoxView {
         let mut view = BoxView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             left_outer_padding,
@@ -560,22 +571,27 @@ impl TOMLView for BoxView {
             "relative".to_string(),
             // "flex-shrink: 0".to_string(),
         ];
-        if self.width != "0px" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
+        let mut class_parts = vec![
+            format!("items-{}", self.align_subs),
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
+
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
-        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
+        attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "div".to_string(),
@@ -660,8 +676,8 @@ impl TextView {
         TextView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             left_outer_padding,
@@ -739,9 +755,20 @@ impl TOMLView for TextView {
         }
         let span_style = span_style_parts.join("; ") + ";"; // 끝에 세
 
+        let mut class_parts = vec![
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
+
         let mut span_attrs = HashMap::new();
         span_attrs.insert("id".to_string(), self.key.clone());
         span_attrs.insert("style".to_string(), span_style);
+        span_attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "span".to_string(),
@@ -792,8 +819,8 @@ impl ImageView {
         ImageView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             left_outer_padding,
@@ -901,8 +928,8 @@ impl NavView {
         NavView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             title: item_to_string(&table, "title", "", value),
@@ -993,8 +1020,8 @@ impl ListColumnView {
         let mut view = ListColumnView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -1075,12 +1102,6 @@ impl TOMLView for ListColumnView {
             "display:flex".to_string(),
             "flex-direction:column".to_string(),
         ];
-        if self.width != "0px" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if self.is_scroll {
             style_parts.push("overflow-y: auto".to_string());
         } else {
@@ -1096,10 +1117,21 @@ impl TOMLView for ListColumnView {
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
+        let mut class_parts = vec![
+            format!("items-{}", self.align_subs),
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
+
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
-        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
+        attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "div".to_string(),
@@ -1183,8 +1215,8 @@ impl ListRowView {
         let mut view = ListRowView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -1265,12 +1297,6 @@ impl TOMLView for ListRowView {
             "display:flex".to_string(),
             "flex-direction:row".to_string(),
         ];
-        if self.width != "0px" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if self.is_scroll {
             style_parts.push("overflow-x: auto".to_string());
         } else {
@@ -1286,10 +1312,21 @@ impl TOMLView for ListRowView {
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
+        let mut class_parts = vec![
+            format!("items-{}", self.align_subs),
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
+
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
-        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
+        attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "div".to_string(),
@@ -1374,8 +1411,8 @@ impl MarkdownListColumnView {
         let mut view = MarkdownListColumnView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -1459,12 +1496,6 @@ impl TOMLView for MarkdownListColumnView {
             "display:flex".to_string(),
             "flex-direction:column".to_string(),
         ];
-        if self.width != "0px" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if self.is_scroll {
             style_parts.push("overflow-y: auto".to_string());
         } else {
@@ -1480,10 +1511,21 @@ impl TOMLView for MarkdownListColumnView {
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
+        let mut class_parts = vec![
+            format!("items-{}", self.align_subs),
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
+
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
-        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
+        attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "div".to_string(),
@@ -1567,8 +1609,8 @@ impl MarkdownListRowView {
         let mut view = MarkdownListRowView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -1652,12 +1694,6 @@ impl TOMLView for MarkdownListRowView {
             "display:flex".to_string(),
             "flex-direction:row".to_string(),
         ];
-        if self.width != "0px" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if self.is_scroll {
             style_parts.push("overflow-x: auto".to_string());
         } else {
@@ -1673,10 +1709,21 @@ impl TOMLView for MarkdownListRowView {
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
+        let mut class_parts = vec![
+            format!("items-{}", self.align_subs),
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
+
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
-        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
+        attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "div".to_string(),
@@ -1760,8 +1807,8 @@ impl MarkdownView {
         MarkdownView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -1829,12 +1876,6 @@ impl TOMLView for MarkdownView {
             "flex-direction:column".to_string(),
             "flex-shrink: 0".to_string(),
         ];
-        if self.width != "wrap" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "wrap" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if self.is_scroll {
             style_parts.push("overflow-y: auto".to_string());
         } else {
@@ -1849,11 +1890,21 @@ impl TOMLView for MarkdownView {
         }
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
-        
+
+        let mut class_parts = vec![
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), class);
 
         let parent = self.index_path.parent().expect("index_path has no parent");
         let target_path = parent.join(self.markdown_path.clone());
@@ -1924,8 +1975,8 @@ impl GridView {
         let mut view = GridView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -2006,12 +2057,6 @@ impl TOMLView for GridView {
             "display:flex".to_string(),
             "flex-direction:row".to_string(),
         ];
-        if self.width != "0px" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if self.is_scroll {
             style_parts.push("overflow-x: auto".to_string());
         } else {
@@ -2027,9 +2072,20 @@ impl TOMLView for GridView {
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
+        let mut class_parts = vec![
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
+
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "div".to_string(),
@@ -2081,8 +2137,8 @@ impl EmbedView {
         let mut view = EmbedView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "0px", value),
-            height: item_to_string(&table, "height", "0px", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -2156,12 +2212,6 @@ impl TOMLView for EmbedView {
                 self.left_outer_padding,
             ),
         ];
-        if self.width != "0px" {
-            style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" {
-            style_parts.push(format!("height:{}", self.height));
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
@@ -2172,9 +2222,20 @@ impl TOMLView for EmbedView {
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
+        let mut class_parts = vec![
+        ];
+        if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        let class = class_parts.join(" ");
+
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), class);
 
         HTMLView {
             tag: "div".to_string(),

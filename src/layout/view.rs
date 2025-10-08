@@ -197,10 +197,14 @@ impl TOMLView for ColumnView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         
@@ -395,10 +399,14 @@ impl TOMLView for RowView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
@@ -580,10 +588,14 @@ impl TOMLView for BoxView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
@@ -747,20 +759,18 @@ impl TOMLView for TextView {
             format!("justify-content: {}", self.horizontal_align),
             format!("align-items: {}", self.vertical_align),
         ];
-        if self.width != "0px" && self.width != "wrap" {
-            span_style_parts.push(format!("width:{}", self.width));
-        }
-        if self.height != "0px" && self.height != "wrap" {
-            span_style_parts.push(format!("height:{}", self.height));
-        }
         let span_style = span_style_parts.join("; ") + ";"; // 끝에 세
 
         let mut class_parts = vec![
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
@@ -1120,10 +1130,14 @@ impl TOMLView for ListColumnView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
@@ -1315,10 +1329,14 @@ impl TOMLView for ListRowView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
@@ -1514,10 +1532,14 @@ impl TOMLView for MarkdownListColumnView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
@@ -1712,10 +1734,14 @@ impl TOMLView for MarkdownListRowView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
@@ -1893,10 +1919,14 @@ impl TOMLView for MarkdownView {
 
         let mut class_parts = vec![
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
@@ -2074,10 +2104,14 @@ impl TOMLView for GridView {
 
         let mut class_parts = vec![
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
@@ -2137,8 +2171,8 @@ impl EmbedView {
         let mut view = EmbedView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "wrap", value),
-            height: item_to_string(&table, "height", "wrap", value),
+            width: item_to_string(&table, "width", "w-full", value),
+            height: item_to_string(&table, "height", "h-full", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -2224,16 +2258,20 @@ impl TOMLView for EmbedView {
 
         let mut class_parts = vec![
         ];
-        if self.width != "wrap" {
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
         }
-        if self.height != "wrap" {
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
-        attrs.insert("id".to_string(), self.key.clone());
+        attrs.insert("id".to_string(), format!("embed_{}", self.key.clone()));
         attrs.insert("style".to_string(), style);
         attrs.insert("class".to_string(), class);
 

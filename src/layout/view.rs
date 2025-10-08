@@ -69,6 +69,7 @@ pub struct ColumnView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
     dark: bool,
@@ -103,6 +104,7 @@ impl ColumnView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
             dark: dark,
@@ -201,6 +203,7 @@ impl TOMLView for ColumnView {
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
 
         HTMLView {
             tag: "div".to_string(),
@@ -259,6 +262,7 @@ pub struct RowView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
     dark: bool,
@@ -294,6 +298,7 @@ impl RowView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
             dark: dark,
@@ -390,6 +395,7 @@ impl TOMLView for RowView {
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
 
         HTMLView {
             tag: "div".to_string(),
@@ -446,6 +452,8 @@ pub struct BoxView {
     top_outer_padding: String,
     right_outer_padding: String,
     bottom_outer_padding: String,
+    inner_padding: String,
+    align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
     dark: bool,
@@ -479,6 +487,8 @@ impl BoxView {
             top_outer_padding,
             right_outer_padding,
             bottom_outer_padding,
+            inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
             dark: dark,
@@ -546,9 +556,9 @@ impl TOMLView for BoxView {
                 self.bottom_outer_padding,
                 self.left_outer_padding,
             ),
-            "display:flex".to_string(),
-            "flex-direction:row".to_string(),
-            "flex-shrink: 0".to_string(),
+            // "display:flex".to_string(),
+            "relative".to_string(),
+            // "flex-shrink: 0".to_string(),
         ];
         if self.width != "0px" {
             style_parts.push(format!("width:{}", self.width));
@@ -565,6 +575,7 @@ impl TOMLView for BoxView {
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
 
         HTMLView {
             tag: "div".to_string(),
@@ -956,6 +967,7 @@ pub struct ListColumnView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
     dark: bool,
@@ -991,6 +1003,7 @@ impl ListColumnView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
             dark: dark,
@@ -1086,6 +1099,7 @@ impl TOMLView for ListColumnView {
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
 
         HTMLView {
             tag: "div".to_string(),
@@ -1144,6 +1158,7 @@ pub struct ListRowView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
     dark: bool,
@@ -1178,6 +1193,7 @@ impl ListRowView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
             dark: dark,
@@ -1273,6 +1289,7 @@ impl TOMLView for ListRowView {
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
 
         HTMLView {
             tag: "div".to_string(),
@@ -1331,6 +1348,7 @@ pub struct MarkdownListColumnView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
     dark: bool,
@@ -1366,6 +1384,7 @@ impl MarkdownListColumnView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
             dark,
@@ -1464,6 +1483,7 @@ impl TOMLView for MarkdownListColumnView {
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
 
         HTMLView {
             tag: "div".to_string(),
@@ -1522,6 +1542,7 @@ pub struct MarkdownListRowView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
     dark: bool,
@@ -1556,6 +1577,7 @@ impl MarkdownListRowView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
             dark,
@@ -1654,6 +1676,7 @@ impl TOMLView for MarkdownListRowView {
         let mut attrs = HashMap::new();
         attrs.insert("id".to_string(), self.key.clone());
         attrs.insert("style".to_string(), style);
+        attrs.insert("class".to_string(), format!("items-{}", self.align_subs));
 
         HTMLView {
             tag: "div".to_string(),

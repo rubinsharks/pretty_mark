@@ -79,6 +79,24 @@ pub struct ColumnView {
 
 impl ColumnView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> ColumnView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
         
@@ -292,6 +310,23 @@ pub struct RowView {
 
 impl RowView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> RowView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
 
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
@@ -326,6 +361,7 @@ impl RowView {
             dark: dark,
             views: vec![],
         };
+
         let views = table
             .iter()
             .filter_map(|(k, v)| {
@@ -502,7 +538,24 @@ pub struct BoxView {
 
 impl BoxView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> BoxView {
-
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -703,6 +756,24 @@ pub struct TextView {
 
 impl TextView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> TextView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -854,6 +925,24 @@ pub struct ImageView {
 
 impl ImageView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> ImageView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -994,6 +1083,24 @@ pub struct NavView {
 
 impl NavView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>) -> NavView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let headers_map = get_items(&table, vec!["key", "shape", "width", "height", "background", "title", "values", "path", "dark"]);
 
         let default_dark = super_view
@@ -1081,6 +1188,24 @@ pub struct ListColumnView {
 
 impl ListColumnView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> ListColumnView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -1291,6 +1416,24 @@ pub struct ListRowView {
 
 impl ListRowView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> ListRowView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -1500,6 +1643,24 @@ pub struct MarkdownListColumnView {
 
 impl MarkdownListColumnView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> MarkdownListColumnView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -1713,6 +1874,24 @@ pub struct MarkdownListRowView {
 
 impl MarkdownListRowView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> MarkdownListRowView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -1925,6 +2104,24 @@ pub struct MarkdownView {
 
 impl MarkdownView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> MarkdownView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -2107,6 +2304,24 @@ pub struct GridView {
 
 impl GridView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> GridView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 
@@ -2283,6 +2498,24 @@ pub struct EmbedView {
 
 impl EmbedView {
     pub fn new(index_path: &Path, key: &str, table: &Table, value: Option<&InlineTable>, super_view: Option<&dyn TOMLView>, layout_tables: HashMap<String, Table>, is_scroll: bool) -> EmbedView {
+        let table_value = table.get("value").and_then(|v| v.as_inline_table());
+        let mut merged = InlineTable::new();
+        if let Some(v) = value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        if let Some(v) = table_value {
+            for (k, v) in v.iter() {
+                merged.insert(k, v.clone());
+            }
+        }
+        let value = if merged.is_empty() {
+            None
+        } else {
+            Some(&merged)
+        };
+        
         let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
         let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
 

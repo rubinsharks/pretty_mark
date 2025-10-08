@@ -2363,7 +2363,17 @@ impl TOMLView for EmbedView {
         return &self.views;
     }
     fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {
-        let views = self.views.iter().map(|x| x.htmlview(Some(self))).collect();
+        let views: Vec<HTMLView> = self.views.iter().map(|x| x.htmlview(Some(self))).collect();
+        let sub_classes: Vec<String> = views.clone()
+            .first()
+            .and_then(|first_view| first_view.attrs.get("class"))  // Option<&String>
+            .map(|class_str| {
+                class_str
+                    .split_whitespace()
+                    .map(|s| s.to_string())
+                    .collect()
+            })
+            .unwrap_or_else(Vec::new);  // None이면 빈 Vec 반환
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
@@ -2391,11 +2401,17 @@ impl TOMLView for EmbedView {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
             class_parts.push(format!("w-[{}]", self.width));
+        } else {
+            let sub_width = sub_classes.iter().find(|&s| s.starts_with("w-"));
+            sub_width.map(|width_class| class_parts.push(width_class.clone()));
         }
         if self.height.starts_with("h-") {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        } else {
+            let sub_height = sub_classes.iter().find(|&s| s.starts_with("h-"));
+            sub_height.map(|width_class| class_parts.push(width_class.clone()));
         }
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();

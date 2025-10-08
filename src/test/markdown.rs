@@ -10,6 +10,7 @@ use serde_yaml::Value;
 use crate::{layout::{common::get_tomlview_for_key, layouts_from_toml}, markdown::{markdown_wrap_to_html, markdown_wrap_to_htmlview, metas_table_from_markdown}, page::make_md_files_to_folder_except_index};
 
 
+///
 #[test]
 fn test_frontmatter() -> Result<(), Box<dyn std::error::Error>> {
     let md_path = Path::new("test/portfolios/python/sum.md");
@@ -18,8 +19,8 @@ fn test_frontmatter() -> Result<(), Box<dyn std::error::Error>> {
     println!("markdown {:?}", v);
     let title = v.get("title").and_then(|x| x.as_str()).ok_or("failed to get title")?;
     assert_eq!("Sum", title);
-    let date = v.get("date").and_then(|x| x.as_str()).ok_or("failed to get date")?;
-    assert_eq!("25-10-01", date);
+    let date = v.get("created").and_then(|x| x.as_str()).ok_or("failed to get date")?;
+    assert_eq!("25-10-02", date);
     Ok(())
 }
 
@@ -76,7 +77,7 @@ fn test_layout_pass_down() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// markdown파일에 지정된 메타 레이아웃이 제대로 전파되어 마크다운에 적용되고 있는지
+/// markdown파일에 지정된 frontmatter가 제대로 전파되어 마크다운에 적용되고 있는지
 #[test]
 fn test_meta_layout() -> Result<(), Box<dyn std::error::Error>> {
     let index_path = Path::new("test/portfolios/index.toml");
@@ -84,6 +85,6 @@ fn test_meta_layout() -> Result<(), Box<dyn std::error::Error>> {
     let md_path = Path::new("test/portfolios/python/minus.md");
     let view = markdown_wrap_to_htmlview(md_path, layouts);
     println!("{:?}", view);
-    assert_eq!(1, 1);
+    assert_eq!(1, 2);
     Ok(())
 }

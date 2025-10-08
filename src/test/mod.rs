@@ -1,6 +1,7 @@
 mod test;
 mod markdown;
 mod page;
+mod toml;
 
 #[cfg(test)]
 mod test_toml {

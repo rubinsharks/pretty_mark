@@ -2351,7 +2351,7 @@ impl GridView {
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
-            row_count: item_to_string(&table, "row_count", "", value),
+            row_count: item_to_string(&table, "row_count", "3", value),
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -2359,14 +2359,15 @@ impl GridView {
 
         let layout = item_to_string(&table, "layout", "", value);
         let mut views: Vec<Box<dyn TOMLView>> = vec![];
-        // if let Some(values) = table.get("values").and_then(|item| item.as_array()) {
-        //     views.extend(
-        //         values
-        //             .iter()
-        //             .filter_map(|v| if let Value::InlineTable(tbl) = v { Some(tbl) } else { None })
-        //             .filter_map(|tbl| layout_to_tomlview(layout.clone(), index_path, Some(tbl), Some(&view)).ok())
-        //     );
-        // }
+
+        if let Some(values) = table.get("values").and_then(|item| item.as_array()) {
+            views.extend(
+                values
+                    .iter()
+                    .filter_map(|v| if let Value::InlineTable(tbl) = v { Some(tbl) } else { None })
+                    .filter_map(|tbl| layout_to_tomlview(&view, layout.clone(), layout_tables.clone(), Some(tbl)).ok())
+            );
+        }
 
         view.views = views;
         view
@@ -2419,8 +2420,8 @@ impl TOMLView for GridView {
                 self.bottom_outer_padding,
                 self.left_outer_padding,
             ),
-            "display:flex".to_string(),
-            "flex-direction:row".to_string(),
+            // "display:flex".to_string(),
+            // "flex-direction:row".to_string(),
         ];
         if self.is_scroll {
             style_parts.push("overflow-x: auto".to_string());
@@ -2431,13 +2432,14 @@ impl TOMLView for GridView {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
 
-        if !self.inner_padding.trim().is_empty() {
-            style_parts.push(format!("gap:{}", self.inner_padding));
-        }
+        // if !self.inner_padding.trim().is_empty() {
+        //     style_parts.push(format!("gap:{}", self.inner_padding));
+        // }
 
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
+            format!("grid grid-cols-{} gap-[{}]", self.row_count, self.inner_padding),
         ];
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());

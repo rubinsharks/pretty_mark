@@ -1034,6 +1034,7 @@ impl TOMLView for ImageView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        class_parts.push(format!("object-{}", self.content_size));
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();
 

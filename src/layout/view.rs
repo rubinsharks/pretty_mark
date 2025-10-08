@@ -69,6 +69,7 @@ pub struct ColumnView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
@@ -104,6 +105,7 @@ impl ColumnView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
@@ -207,6 +209,14 @@ impl TOMLView for ColumnView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
         
         let class = class_parts.join(" ");
 
@@ -272,6 +282,7 @@ pub struct RowView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
@@ -308,6 +319,7 @@ impl RowView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
@@ -409,6 +421,14 @@ impl TOMLView for RowView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -472,6 +492,7 @@ pub struct BoxView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
@@ -507,6 +528,7 @@ impl BoxView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
@@ -576,7 +598,6 @@ impl TOMLView for BoxView {
                 self.left_outer_padding,
             ),
             // "display:flex".to_string(),
-            "relative".to_string(),
             // "flex-shrink: 0".to_string(),
         ];
         if !self.fixed.is_empty() {
@@ -586,6 +607,7 @@ impl TOMLView for BoxView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
+            "relative".to_string(),
             format!("items-{}", self.align_subs),
         ];
         if self.width.starts_with("w-") {
@@ -597,6 +619,14 @@ impl TOMLView for BoxView {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+            
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
         }
         let class = class_parts.join(" ");
 
@@ -658,6 +688,7 @@ pub struct TextView {
     top_outer_padding: String,
     right_outer_padding: String,
     bottom_outer_padding: String,
+    align_absolute: String,
     size: String,
     text: String,
     color: String,
@@ -696,6 +727,7 @@ impl TextView {
             top_outer_padding,
             right_outer_padding,
             bottom_outer_padding,
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             size: item_to_string(&table, "size", "16px", value),
             text: item_to_string(&table, "text", "", value),
             color: item_to_string(&table, "color", "black", value),
@@ -773,6 +805,14 @@ impl TOMLView for TextView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
         let class = class_parts.join(" ");
 
         let mut span_attrs = HashMap::new();
@@ -804,6 +844,7 @@ pub struct ImageView {
     top_outer_padding: String,
     right_outer_padding: String,
     bottom_outer_padding: String,
+    align_absolute: String,
     image_path: String,
     content_size: String,
     value: Option<InlineTable>,
@@ -837,6 +878,7 @@ impl ImageView {
             top_outer_padding,
             right_outer_padding,
             bottom_outer_padding,
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             image_path: item_to_string(&table, "image_path", "", value),
             content_size: item_to_string(&table, "content_size", "cover", value),
             value: value.cloned(),
@@ -891,12 +933,35 @@ impl TOMLView for ImageView {
         ];
         let img_style = img_style_parts.join("; ") + ";"; // 끝에 세
 
+        let mut class_parts = vec![
+        ];
+        if self.width.starts_with("w-") {
+            class_parts.push(self.width.clone());
+        } else if self.width != "wrap" {
+            class_parts.push(format!("w-[{}]", self.width));
+        }
+        if self.height.starts_with("h-") {
+            class_parts.push(self.height.clone());
+        } else if self.height != "wrap" {
+            class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
+        let class = class_parts.join(" ");
+
         let mut img_attrs = HashMap::new();
         img_attrs.insert("id".to_string(), self.key.clone());
         img_attrs.insert("style".to_string(), img_style);
         img_attrs.insert("src".to_string(), self.image_path.clone());
-        img_attrs.insert("width".to_string(), self.width.clone());
-        img_attrs.insert("height".to_string(), self.height.clone());
+        img_attrs.insert("class".to_string(), class);
+        // img_attrs.insert("width".to_string(), self.width.clone());
+        // img_attrs.insert("height".to_string(), self.height.clone());
 
         HTMLView {
             tag: "img".to_string(),
@@ -918,6 +983,7 @@ pub struct NavView {
     height: String,
     background: String,
     path: String,
+    align_absolute: String,
     title: String,
     headers: Vec<String>,
     headers_map: HashMap<String, Item>,
@@ -942,6 +1008,7 @@ impl NavView {
             height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             title: item_to_string(&table, "title", "", value),
             headers: item_to_strings(&table, "headers"),
             headers_map: headers_map,
@@ -1004,6 +1071,7 @@ pub struct ListColumnView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
@@ -1040,6 +1108,7 @@ impl ListColumnView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
@@ -1140,6 +1209,14 @@ impl TOMLView for ListColumnView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -1204,6 +1281,7 @@ pub struct ListRowView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
@@ -1239,6 +1317,7 @@ impl ListRowView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
@@ -1339,6 +1418,14 @@ impl TOMLView for ListRowView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -1403,6 +1490,7 @@ pub struct MarkdownListColumnView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
@@ -1439,6 +1527,7 @@ impl MarkdownListColumnView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
@@ -1542,6 +1631,14 @@ impl TOMLView for MarkdownListColumnView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -1606,6 +1703,7 @@ pub struct MarkdownListRowView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     align_subs: String,
     fixed: String,
     value: Option<InlineTable>,
@@ -1641,6 +1739,7 @@ impl MarkdownListRowView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
@@ -1744,6 +1843,14 @@ impl TOMLView for MarkdownListRowView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -1808,6 +1915,7 @@ pub struct MarkdownView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     fixed: String,
     markdown_path: String,
     value: Option<InlineTable>,
@@ -1843,6 +1951,7 @@ impl MarkdownView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             markdown_path: item_to_string(&table, "markdown_path", "", value),
             value: value.cloned(),
@@ -1929,6 +2038,14 @@ impl TOMLView for MarkdownView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -1980,6 +2097,7 @@ pub struct GridView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     fixed: String,
     row_count: String,
     value: Option<InlineTable>,
@@ -2015,6 +2133,7 @@ impl GridView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             row_count: item_to_string(&table, "row_count", "", value),
             value: value.cloned(),
@@ -2114,6 +2233,14 @@ impl TOMLView for GridView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -2147,6 +2274,7 @@ pub struct EmbedView {
     right_outer_padding: String,
     bottom_outer_padding: String,
     inner_padding: String,
+    align_absolute: String,
     fixed: String,
     value: Option<InlineTable>,
     dark: bool,
@@ -2171,8 +2299,8 @@ impl EmbedView {
         let mut view = EmbedView {
             index_path: index_path.to_path_buf(),
             key: key.to_string(),
-            width: item_to_string(&table, "width", "w-full", value),
-            height: item_to_string(&table, "height", "h-full", value),
+            width: item_to_string(&table, "width", "wrap", value),
+            height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
@@ -2181,6 +2309,7 @@ impl EmbedView {
             right_outer_padding,
             bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
+            align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             value: value.cloned(),
             dark: dark,
@@ -2267,6 +2396,14 @@ impl TOMLView for EmbedView {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_absolute.is_empty() {
+            let mut align_class = self.align_absolute.clone();
+
+            if !align_class.chars().any(|c| c.is_numeric()) {
+                align_class = format!("{}-0", align_class);
+            }
+            class_parts.push(format!("absolute {}", align_class));
         }
         let class = class_parts.join(" ");
 

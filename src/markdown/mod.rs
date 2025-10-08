@@ -1,8 +1,8 @@
 use std::{collections::HashMap, env, fs::{self, File}, io::Write, path::{Path, PathBuf}};
 
 use parser::{get_node_for_markdown, node_to_html};
-use serde_yaml::Value;
-use toml_edit::{InlineTable, Table};
+// use serde_yaml::Value;
+use toml_edit::{InlineTable, Table, Value};
 
 use crate::{html::HTMLView, layout::{common::{get_tomlview_for_key, layout_to_tomlview}, toml_to_html}, yaml::yaml_hashmap_to_inline_table};
 pub mod parser;
@@ -22,8 +22,23 @@ fn get_markdown_path() -> Result<PathBuf, String> {
 }
 
 pub fn markdown_to_htmlview(md_path: &Path, is_dark: bool) -> Result<HTMLView, String> {
+    let metas = metas_table_from_markdown(md_path)
+        .unwrap_or_else(|_| InlineTable::new());
+    
+    let dark_value = metas
+        .get("dark")     
+        .map(|v| {
+            match v.as_bool() {
+                Some(b) => b,                         // Boolean이면 그대로 사용
+                None => v.as_str()                     // 문자열이면
+                    .map(|s| s.eq_ignore_ascii_case("true"))
+                    .unwrap_or(is_dark),           // 문자열 아닌 경우 기본값
+            }
+        })
+        .unwrap_or(is_dark);    
+    
     let node = get_node_for_markdown(md_path)?;
-    let htmlview = node_to_html(&node, None, None, is_dark);
+    let htmlview = node_to_html(&node, None, None, dark_value);
     Ok(htmlview)
 }
 
@@ -33,7 +48,20 @@ pub fn markdown_wrap_to_htmlview(md_path: &Path, layout_tables: HashMap<String, 
         .unwrap_or_else(|_| InlineTable::new());
 
     let view = get_tomlview_for_key(md_wrap_path.as_path(), "root", Some(&metas), None, layout_tables)?;
-    let md_html_view = markdown_to_htmlview(md_path, view.dark())?;
+
+    let dark_value = metas
+        .get("dark")     
+        .map(|v| {
+            match v.as_bool() {
+                Some(b) => b,                         // Boolean이면 그대로 사용
+                None => v.as_str()                     // 문자열이면
+                    .map(|s| s.eq_ignore_ascii_case("true"))
+                    .unwrap_or(view.dark()),           // 문자열 아닌 경우 기본값
+            }
+        })
+        .unwrap_or(view.dark());               // 없으면 기존 view.dark() 사용
+
+    let md_html_view = markdown_to_htmlview(md_path, dark_value)?;
 
     let html_view = view.htmlview(None)
         .inflate_view("contents", md_html_view)
@@ -60,7 +88,7 @@ pub fn markdown_wrap_to_html(md_path: &Path, layout_tables: HashMap<String, Tabl
 
 pub fn metas_table_from_markdown(md_path: &Path) -> Result<InlineTable, String> {
     let content = fs::read_to_string(md_path)
-        .expect("Failed to read the markdown file");
+        .map_err(|e| format!("Failed to read the markdown file: {}", e))?;
 
     let mut metadata = InlineTable::new();
     let mut lines = content.lines();
@@ -100,7 +128,7 @@ pub fn metas_table_from_markdown(md_path: &Path) -> Result<InlineTable, String> 
     metadata.insert("filename", toml_edit::Value::from(file_name));
 
     // YAML 파싱
-    if let Ok(parsed) = serde_yaml::from_str::<HashMap<String, Value>>(&yaml_str) {
+    if let Ok(parsed) = serde_yaml::from_str::<HashMap<String, serde_yaml::Value>>(&yaml_str) {
         let yaml_table = yaml_hashmap_to_inline_table(&parsed);
         metadata.extend(yaml_table);
     }

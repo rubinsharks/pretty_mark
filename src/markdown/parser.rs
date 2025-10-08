@@ -28,7 +28,9 @@ pub fn node_to_html(md: &Node, sup: Option<&Node>, index: Option<usize>, is_dark
     match md {
         Node::Root(node) => HTMLView {
             tag: "div".to_string(),
-            attrs: hashmap! {},
+            attrs: hashmap! {
+                "class".to_string() => filter_attrs("dark:bg-slate-900", is_dark)
+            },
             value: "".to_string(),
             views: node
                 .children

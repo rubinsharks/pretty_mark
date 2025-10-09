@@ -105,7 +105,7 @@ impl HTMLView {
         let body_view = HTMLView {
             tag: "body".to_string(),
             attrs: hashmap! {
-                "class".to_string() => filter_attrs("container mx-auto bg-white w-screen h-screen dark:bg-slate-900", is_dark),
+                "class".to_string() => filter_attrs("mx-auto bg-white w-screen h-screen dark:bg-slate-900", is_dark),
             },
             value: "".to_string(),
             views: vec![self_view]

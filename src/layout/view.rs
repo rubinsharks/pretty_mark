@@ -6,6 +6,8 @@ use crate::page::Page;
 use std::collections::HashMap;
 use std::fmt::{self, Formatter};
 use std::path::{Path, PathBuf};
+use chrono::{DateTime, Utc};
+use dateparser::parse;
 use toml_edit::InlineTable;
 use toml_edit::{value, DocumentMut, Item, Table, Value};
 
@@ -747,6 +749,7 @@ pub struct TextView {
     color: String,
     family: String,
     weight: String,
+    underline: bool,
     horizontal_align: String,
     vertical_align: String,
     value: Option<InlineTable>,
@@ -804,6 +807,7 @@ impl TextView {
             color: item_to_string(&table, "color", "black", value),
             family: item_to_string(&table, "family", "Arial", value),
             weight: item_to_string(&table, "weight", "normal", value),
+            underline: item_to_bool(&table, "underline", false, value),
             horizontal_align: item_to_string(&table, "horizontal_align", "left", value),
             vertical_align: item_to_string(&table, "vertical_align", "top", value),
             value: value.cloned(),
@@ -884,6 +888,9 @@ impl TOMLView for TextView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if self.underline {
+            class_parts.push("underline".to_string());
+        }
         let class = class_parts.join(" ");
 
         let mut span_attrs = HashMap::new();
@@ -918,6 +925,7 @@ pub struct ImageView {
     align_absolute: String,
     image_path: String,
     content_size: String,
+    rounded: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -970,6 +978,7 @@ impl ImageView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             image_path: item_to_string(&table, "image_path", "", value),
             content_size: item_to_string(&table, "content_size", "cover", value),
+            rounded: item_to_string(&table, "rounded", "", value),
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -1042,6 +1051,9 @@ impl TOMLView for ImageView {
                 align_class = format!("{}-0", align_class);
             }
             class_parts.push(format!("absolute {}", align_class));
+        }
+        if !self.rounded.is_empty() {
+            class_parts.push(format!("rounded-[{}]", self.rounded));
         }
         let class = class_parts.join(" ");
 
@@ -1735,14 +1747,51 @@ impl MarkdownListColumnView {
 
         let index_folder = index_path.parent().unwrap_or(index_path);
         let files = item_to_string(&table, "files", "", value);
+        let order_by = item_to_string(&table, "order_by", "", value);
         let file_paths = find_files(files.as_str(), index_folder);
+
+        let order_by = order_by.trim(); // 예: "created" 또는 "created_desc"
+        let (order_by, desc) = if let Some(k) = order_by.strip_suffix("_desc") {
+            (k, true)
+        } else {
+            (order_by, false)
+        };
         
-        views.extend(
-            file_paths
-                .iter()
-                .filter_map(|v| metas_table_from_markdown(v.as_path()).ok() )
-                .filter_map(|tbl| layout_to_tomlview(&view, layout.clone(), layout_tables.clone(), Some(&tbl)).ok())
-        );
+        // (view, metas) 쌍으로 수집
+        let mut view_with_meta: Vec<_> = file_paths
+            .iter()
+            .filter_map(|path| {
+                let metas = metas_table_from_markdown(path.as_path()).ok()?;
+                let view = layout_to_tomlview(&view, layout.clone(), layout_tables.clone(), Some(&metas)).ok()?;
+                Some((view, metas))
+            })
+            .collect();
+
+        if !order_by.is_empty() {
+            if order_by == "created" {
+                view_with_meta.sort_by_key(|(_, metas)| {
+                    metas
+                        .get("created")
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| parse(s).ok()) // 여러 포맷 자동 인식
+                        .unwrap_or_else(|| DateTime::<Utc>::MIN_UTC) // 실패 시 최소값
+                });
+            } else {
+                view_with_meta.sort_by_key(|(_, metas)| {
+                    metas
+                        .get(&order_by)
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string()
+                });
+            }
+        }
+        if desc {
+            view_with_meta.reverse();
+        }
+
+        // view만 꺼내서 views에 추가
+        views.extend(view_with_meta.into_iter().map(|(v, _)| v));
 
         view.views = views;
         view

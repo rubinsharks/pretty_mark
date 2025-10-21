@@ -14,10 +14,10 @@ fn get_markdown_path() -> Result<PathBuf, String> {
     let mut file_path = std::env::temp_dir();
     file_path.push("markdown.toml");
 
-    if !file_path.exists() {
-        fs::write(&file_path, MARKDOWN_TOML)
-            .map_err(|e| format!("파일 쓰기 실패: {}", e))?;
-    }
+    // if file_path.exists() {
+    // }
+    fs::write(&file_path, MARKDOWN_TOML)
+        .map_err(|e| format!("파일 쓰기 실패: {}", e))?;
     Ok(file_path)
 }
 

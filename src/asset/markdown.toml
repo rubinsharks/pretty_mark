@@ -1,6 +1,6 @@
 
 [root]
-shape = "scroll_column" 
+shape = "column" 
 width = "100%"
 height = "100%"
 
@@ -9,9 +9,9 @@ shape = "embed"
 layout = "{header}"
 
 [root.contents]
-shape = "column"
+shape = "scroll_column"
 width = "100%"
-height = "wrap"
+height = "100%"
 horizontal_padding = "20px"
 bottom_outer_padding = "80px"
 custom_class = "{custom_class}"

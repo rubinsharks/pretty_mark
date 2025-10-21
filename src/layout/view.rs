@@ -203,7 +203,7 @@ impl TOMLView for ColumnView {
             ),
             "display:flex".to_string(),
             "flex-direction:column".to_string(),
-            "flex-shrink: 0".to_string(),
+            // "flex-shrink: 0".to_string(),
         ];
         if self.is_scroll {
             style_parts.push("overflow-y: auto".to_string());
@@ -442,7 +442,7 @@ impl TOMLView for RowView {
             ),
             "display:flex".to_string(),
             "flex-direction:row".to_string(),
-            "flex-shrink: 0".to_string(),
+            // "flex-shrink: 0".to_string(),
         ];
         if self.is_scroll {
             style_parts.push("overflow-x: auto".to_string());
@@ -2362,7 +2362,7 @@ impl TOMLView for MarkdownView {
             ),
             "display:flex".to_string(),
             "flex-direction:column".to_string(),
-            "flex-shrink: 0".to_string(),
+            // "flex-shrink: 0".to_string(),
         ];
         if self.is_scroll {
             style_parts.push("overflow-y: auto".to_string());

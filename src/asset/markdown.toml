@@ -14,6 +14,7 @@ width = "100%"
 height = "wrap"
 horizontal_padding = "20px"
 bottom_outer_padding = "80px"
+custom_class = "{custom_class}"
 
 [root.footer]
 shape = "embed"

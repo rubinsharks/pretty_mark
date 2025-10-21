@@ -29,7 +29,7 @@ pub fn node_to_html(md: &Node, sup: Option<&Node>, index: Option<usize>, is_dark
         Node::Root(node) => HTMLView {
             tag: "div".to_string(),
             attrs: hashmap! {
-                "class".to_string() => filter_attrs("w-full h-full dark:bg-slate-900", is_dark)
+                "class".to_string() => filter_attrs("w-full pb-[50px] dark:bg-slate-900", is_dark)
             },
             value: "".to_string(),
             views: node

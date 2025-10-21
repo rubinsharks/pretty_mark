@@ -90,6 +90,6 @@ pub fn make_nav(title: String, menus: Vec<String>, sub_menus: HashMap<String, It
       "href".to_string() => "/".to_string() 
   }, "", vec![left_text]);
 
-  let div = HTMLView::new("div", hashmap! {"class".to_string() => filter_attrs("max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4", is_dark) }, "", vec![left, right_collapse, right]);
+  let div = HTMLView::new("div", hashmap! {"class".to_string() => filter_attrs("flex flex-wrap items-center justify-between p-4", is_dark) }, "", vec![left, right_collapse, right]);
   HTMLView::new("nav", hashmap! {"class".to_string() => filter_attrs("bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700", is_dark) }, "", vec![div])
 }

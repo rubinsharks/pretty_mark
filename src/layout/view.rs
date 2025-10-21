@@ -74,6 +74,7 @@ pub struct ColumnView {
     align_absolute: String,
     align_subs: String,
     fixed: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -107,6 +108,8 @@ impl ColumnView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -128,6 +131,7 @@ impl ColumnView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -237,6 +241,10 @@ impl TOMLView for ColumnView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         
         let class = class_parts.join(" ");
 
@@ -305,6 +313,7 @@ pub struct RowView {
     align_absolute: String,
     align_subs: String,
     fixed: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -338,6 +347,8 @@ impl RowView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -359,6 +370,7 @@ impl RowView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -467,6 +479,9 @@ impl TOMLView for RowView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -533,6 +548,7 @@ pub struct BoxView {
     align_absolute: String,
     align_subs: String,
     fixed: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -565,6 +581,8 @@ impl BoxView {
         let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
+        
+        let custom_class = item_to_string(&table, "custom_class", "", value);
 
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
@@ -586,6 +604,7 @@ impl BoxView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -683,6 +702,9 @@ impl TOMLView for BoxView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -752,6 +774,7 @@ pub struct TextView {
     underline: bool,
     horizontal_align: String,
     vertical_align: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -785,6 +808,8 @@ impl TextView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -810,6 +835,7 @@ impl TextView {
             underline: item_to_bool(&table, "underline", false, value),
             horizontal_align: item_to_string(&table, "horizontal_align", "left", value),
             vertical_align: item_to_string(&table, "vertical_align", "top", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -891,6 +917,9 @@ impl TOMLView for TextView {
         if self.underline {
             class_parts.push("underline".to_string());
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut span_attrs = HashMap::new();
@@ -926,6 +955,7 @@ pub struct ImageView {
     image_path: String,
     content_size: String,
     rounded: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -959,6 +989,8 @@ impl ImageView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -979,6 +1011,7 @@ impl ImageView {
             image_path: item_to_string(&table, "image_path", "", value),
             content_size: item_to_string(&table, "content_size", "cover", value),
             rounded: item_to_string(&table, "rounded", "", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -1055,6 +1088,9 @@ impl TOMLView for ImageView {
         if !self.rounded.is_empty() {
             class_parts.push(format!("rounded-[{}]", self.rounded));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut img_attrs = HashMap::new();
@@ -1089,6 +1125,7 @@ pub struct NavView {
     title: String,
     headers: Vec<String>,
     headers_map: HashMap<String, Item>,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -1116,6 +1153,8 @@ impl NavView {
         
         let headers_map = get_items(&table, vec!["key", "shape", "width", "height", "background", "title", "values", "path", "dark"]);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -1132,6 +1171,7 @@ impl NavView {
             title: item_to_string(&table, "title", "", value),
             headers: item_to_strings(&table, "headers"),
             headers_map: headers_map,
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -1191,6 +1231,9 @@ impl TOMLView for NavView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -1227,6 +1270,7 @@ pub struct ListColumnView {
     align_absolute: String,
     align_subs: String,
     fixed: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -1260,6 +1304,7 @@ impl ListColumnView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
         
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
@@ -1282,6 +1327,7 @@ impl ListColumnView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -1388,6 +1434,9 @@ impl TOMLView for ListColumnView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -1455,6 +1504,7 @@ pub struct ListRowView {
     align_absolute: String,
     align_subs: String,
     fixed: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -1488,6 +1538,8 @@ impl ListRowView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -1509,6 +1561,7 @@ impl ListRowView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -1615,6 +1668,9 @@ impl TOMLView for ListRowView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -1682,6 +1738,7 @@ pub struct MarkdownListColumnView {
     align_absolute: String,
     align_subs: String,
     fixed: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -1715,6 +1772,7 @@ impl MarkdownListColumnView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
 
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
@@ -1737,6 +1795,7 @@ impl MarkdownListColumnView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
+            custom_class,
             value: value.cloned(),
             dark,
             views: vec![],
@@ -1883,6 +1942,9 @@ impl TOMLView for MarkdownListColumnView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -1950,6 +2012,7 @@ pub struct MarkdownListRowView {
     align_absolute: String,
     align_subs: String,
     fixed: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -1983,6 +2046,8 @@ impl MarkdownListRowView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -2004,6 +2069,7 @@ impl MarkdownListRowView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
             fixed: item_to_string(&table, "fixed", "", value),
+            custom_class,
             value: value.cloned(),
             dark,
             views: vec![],
@@ -2113,6 +2179,9 @@ impl TOMLView for MarkdownListRowView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -2180,6 +2249,7 @@ pub struct MarkdownView {
     align_absolute: String,
     fixed: String,
     markdown_path: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -2213,6 +2283,8 @@ impl MarkdownView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -2234,6 +2306,7 @@ impl MarkdownView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             markdown_path: item_to_string(&table, "markdown_path", "", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -2326,6 +2399,9 @@ impl TOMLView for MarkdownView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -2380,6 +2456,7 @@ pub struct GridView {
     align_absolute: String,
     fixed: String,
     row_count: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -2413,6 +2490,8 @@ impl GridView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -2434,6 +2513,7 @@ impl GridView {
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             row_count: item_to_string(&table, "row_count", "3", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -2541,6 +2621,9 @@ impl TOMLView for GridView {
             }
             class_parts.push(format!("absolute {}", align_class));
         }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
+        }
         let class = class_parts.join(" ");
 
         let mut attrs = HashMap::new();
@@ -2576,6 +2659,7 @@ pub struct EmbedView {
     inner_padding: String,
     align_absolute: String,
     fixed: String,
+    custom_class: String,
     value: Option<InlineTable>,
     dark: bool,
     views: Vec<Box<dyn TOMLView>>,
@@ -2609,6 +2693,8 @@ impl EmbedView {
         let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
         let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
+        let custom_class = item_to_string(&table, "custom_class", "", value);
+
         let default_dark = super_view
             .and_then(|x| Some(x.dark()))
             .unwrap_or(false);
@@ -2629,6 +2715,7 @@ impl EmbedView {
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
+            custom_class,
             value: value.cloned(),
             dark: dark,
             views: vec![],
@@ -2738,6 +2825,9 @@ impl TOMLView for EmbedView {
                 align_class = format!("{}-0", align_class);
             }
             class_parts.push(format!("absolute {}", align_class));
+        }
+        if !self.custom_class.is_empty() {
+            class_parts.push(format!("{}", self.custom_class));
         }
         let class = class_parts.join(" ");
 

@@ -51,13 +51,6 @@ pub trait TOMLView: Any {
     fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView;
 }
 
-/// column, row, box
-trait AllocationView: TOMLView {
-    fn fixed(&self) -> String;
-    fn set_inner_padding(&mut self, value: String);
-    fn set_outer_padding(&mut self, ptype: PaddingType, value: String);
-}
-
 pub struct ColumnView {
     index_path: PathBuf,
     key: String,
@@ -66,10 +59,6 @@ pub struct ColumnView {
     background: String,
     path: String,
     is_scroll: bool,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     align_subs: String,
@@ -100,14 +89,6 @@ impl ColumnView {
             Some(&merged)
         };
 
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-        
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
-
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
         let default_dark = super_view
@@ -123,10 +104,6 @@ impl ColumnView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
@@ -194,26 +171,13 @@ impl TOMLView for ColumnView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             "display:flex".to_string(),
             "flex-direction:column".to_string(),
             // "flex-shrink: 0".to_string(),
         ];
-        if self.is_scroll {
-            style_parts.push("overflow-y: auto".to_string());
-        } else {
-            style_parts.push("overflow: hidden".to_string());
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
-
         if !self.inner_padding.trim().is_empty() {
             style_parts.push(format!("gap:{}", self.inner_padding));
         }
@@ -223,6 +187,11 @@ impl TOMLView for ColumnView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
+        if self.is_scroll {
+            class_parts.push("overflow-y-auto".to_string());
+        } else {
+            class_parts.push("overflow-hidden".to_string());
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
@@ -266,37 +235,6 @@ impl TOMLView for ColumnView {
     }
 }
 
-impl AllocationView for ColumnView {
-    fn fixed(&self) -> String {
-        return self.fixed.to_string();
-    }
-    fn set_inner_padding(&mut self, value: String) {
-        self.inner_padding = value;
-    }
-    fn set_outer_padding(&mut self, ptype: PaddingType, value: String) {
-        match ptype {
-            PaddingType::LEFT => self.left_outer_padding = value,
-            PaddingType::RIGHT => self.right_outer_padding = value,
-            PaddingType::TOP => self.top_outer_padding = value,
-            PaddingType::BOTTOM => self.bottom_outer_padding = value,
-            PaddingType::HORIZONTAL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value;
-            }
-            PaddingType::VERTICAL => {
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value;
-            }
-            PaddingType::ALL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value.clone();
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value
-            }
-        }
-    }
-}
-
 pub struct RowView {
     index_path: PathBuf,
     key: String,
@@ -305,10 +243,6 @@ pub struct RowView {
     background: String,
     path: String,
     is_scroll: bool,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     align_subs: String,
@@ -339,14 +273,6 @@ impl RowView {
             Some(&merged)
         };
 
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
-
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
         let default_dark = super_view
@@ -362,10 +288,6 @@ impl RowView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
@@ -433,22 +355,10 @@ impl TOMLView for RowView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             "display:flex".to_string(),
             "flex-direction:row".to_string(),
             // "flex-shrink: 0".to_string(),
         ];
-        if self.is_scroll {
-            style_parts.push("overflow-x: auto".to_string());
-        } else {
-            style_parts.push("overflow: hidden".to_string());
-        }
         if !self.inner_padding.trim().is_empty() {
             style_parts.push(format!("gap:{}", self.inner_padding));
         }
@@ -461,6 +371,11 @@ impl TOMLView for RowView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
+        if self.is_scroll {
+            class_parts.push("overflow-x-auto".to_string());
+        } else {
+            class_parts.push("overflow-hidden".to_string());
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
@@ -502,37 +417,6 @@ impl TOMLView for RowView {
     }
 }
 
-impl AllocationView for RowView {
-    fn fixed(&self) -> String {
-        self.fixed.to_string()
-    }
-    fn set_inner_padding(&mut self, value: String) {
-        self.inner_padding = value;
-    }
-    fn set_outer_padding(&mut self, ptype: PaddingType, value: String) {
-        match ptype {
-            PaddingType::LEFT => self.left_outer_padding = value,
-            PaddingType::RIGHT => self.right_outer_padding = value,
-            PaddingType::TOP => self.top_outer_padding = value,
-            PaddingType::BOTTOM => self.bottom_outer_padding = value,
-            PaddingType::HORIZONTAL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value;
-            }
-            PaddingType::VERTICAL => {
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value;
-            }
-            PaddingType::ALL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value.clone();
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value
-            }
-        }
-    }
-}
-
 pub struct BoxView {
     index_path: PathBuf,
     key: String,
@@ -540,10 +424,6 @@ pub struct BoxView {
     height: String,
     background: String,
     path: String,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     align_subs: String,
@@ -574,14 +454,6 @@ impl BoxView {
             Some(&merged)
         };
         
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
-        
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
         let default_dark = super_view
@@ -596,10 +468,6 @@ impl BoxView {
             height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
@@ -664,13 +532,6 @@ impl TOMLView for BoxView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             // "display:flex".to_string(),
             // "flex-shrink: 0".to_string(),
         ];
@@ -725,35 +586,6 @@ impl TOMLView for BoxView {
     }
 }
 
-impl AllocationView for BoxView {
-    fn fixed(&self) -> String {
-        return self.fixed.to_string()
-    }
-    fn set_inner_padding(&mut self, value: String) {}
-    fn set_outer_padding(&mut self, ptype: PaddingType, value: String) {
-        match ptype {
-            PaddingType::LEFT => self.left_outer_padding = value,
-            PaddingType::RIGHT => self.right_outer_padding = value,
-            PaddingType::TOP => self.top_outer_padding = value,
-            PaddingType::BOTTOM => self.bottom_outer_padding = value,
-            PaddingType::HORIZONTAL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value;
-            }
-            PaddingType::VERTICAL => {
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value;
-            }
-            PaddingType::ALL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value.clone();
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value
-            }
-        }
-    }
-}
-
 pub struct TextView {
     index_path: PathBuf,
     key: String,
@@ -761,10 +593,6 @@ pub struct TextView {
     height: String,
     background: String,
     path: String,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     align_absolute: String,
     size: String,
     text: String,
@@ -800,14 +628,6 @@ impl TextView {
             Some(&merged)
         };
         
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
-
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
         let default_dark = super_view
@@ -822,10 +642,6 @@ impl TextView {
             height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             size: item_to_string(&table, "size", "16px", value),
             text: item_to_string(&table, "text", "", value),
@@ -875,27 +691,30 @@ impl TOMLView for TextView {
         return &self.views;
     }
     fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {
-        let mut span_style_parts = vec![
-            format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
-            format!("display: {}", "flex"),
-            format!("font-size:{}", self.size),
-            format!("color:{}", self.color),
-            format!("font-family:{}", self.family),
-            format!("font-weight:{}", self.weight),
-            format!("justify-content: {}", self.horizontal_align),
-            format!("align-items: {}", self.vertical_align),
-        ];
-        let span_style = span_style_parts.join("; ") + ";"; // 끝에 세
-
         let mut class_parts = vec![
+            "flex".to_string()
         ];
+        if !self.background.is_empty() {
+            class_parts.push(format!("bg-[{}]", self.background));
+        }
+        if !self.size.is_empty() {
+            class_parts.push(format!("text-[{}]", self.size));
+        }
+        if !self.color.is_empty() {
+            class_parts.push(format!("text-[{}]", self.color));
+        }
+        if !self.family.is_empty() {
+            class_parts.push(format!("font-[{}]", self.family));
+        }
+        if !self.weight.is_empty() {
+            class_parts.push(format!("font-{}", self.weight));
+        }
+        if !self.horizontal_align.is_empty() {
+            class_parts.push(format!("justify-{}", self.horizontal_align));
+        }
+        if !self.vertical_align.is_empty() {
+            class_parts.push(format!("items-{}", self.vertical_align));
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
@@ -924,7 +743,6 @@ impl TOMLView for TextView {
 
         let mut span_attrs = HashMap::new();
         span_attrs.insert("id".to_string(), self.key.clone());
-        span_attrs.insert("style".to_string(), span_style);
         span_attrs.insert("class".to_string(), class);
 
         HTMLView {
@@ -947,10 +765,6 @@ pub struct ImageView {
     height: String,
     background: String,
     path: String,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     align_absolute: String,
     image_path: String,
     content_size: String,
@@ -980,14 +794,6 @@ impl ImageView {
         } else {
             Some(&merged)
         };
-        
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
@@ -1003,10 +809,6 @@ impl ImageView {
             height: item_to_string(&table, "height", "wrap", value),
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             image_path: item_to_string(&table, "image_path", "", value),
             content_size: item_to_string(&table, "content_size", "cover", value),
@@ -1053,13 +855,6 @@ impl TOMLView for ImageView {
     fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {
         let mut img_style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             format!("display: {}", "flex"),
         ];
         let img_style = img_style_parts.join("; ") + ";"; // 끝에 세
@@ -1262,10 +1057,6 @@ pub struct ListColumnView {
     background: String,
     path: String,
     is_scroll: bool,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     align_subs: String,
@@ -1295,14 +1086,6 @@ impl ListColumnView {
         } else {
             Some(&merged)
         };
-        
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
         let custom_class = item_to_string(&table, "custom_class", "", value);
         
@@ -1319,10 +1102,6 @@ impl ListColumnView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
@@ -1388,21 +1167,9 @@ impl TOMLView for ListColumnView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             "display:flex".to_string(),
             "flex-direction:column".to_string(),
         ];
-        if self.is_scroll {
-            style_parts.push("overflow-y: auto".to_string());
-        } else {
-            style_parts.push("overflow: hidden".to_string());
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
@@ -1416,6 +1183,11 @@ impl TOMLView for ListColumnView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
+        if self.is_scroll {
+            class_parts.push("overflow-y-auto".to_string());
+        } else {
+            class_parts.push("overflow-hidden".to_string());
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
@@ -1457,37 +1229,6 @@ impl TOMLView for ListColumnView {
     }
 }
 
-impl AllocationView for ListColumnView {
-    fn fixed(&self) -> String {
-        return self.fixed.to_string();
-    }
-    fn set_inner_padding(&mut self, value: String) {
-        self.inner_padding = value;
-    }
-    fn set_outer_padding(&mut self, ptype: PaddingType, value: String) {
-        match ptype {
-            PaddingType::LEFT => self.left_outer_padding = value,
-            PaddingType::RIGHT => self.right_outer_padding = value,
-            PaddingType::TOP => self.top_outer_padding = value,
-            PaddingType::BOTTOM => self.bottom_outer_padding = value,
-            PaddingType::HORIZONTAL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value;
-            }
-            PaddingType::VERTICAL => {
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value;
-            }
-            PaddingType::ALL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value.clone();
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value
-            }
-        }
-    }
-}
-
 pub struct ListRowView {
     index_path: PathBuf,
     key: String,
@@ -1496,10 +1237,6 @@ pub struct ListRowView {
     background: String,
     path: String,
     is_scroll: bool,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     align_subs: String,
@@ -1529,14 +1266,6 @@ impl ListRowView {
         } else {
             Some(&merged)
         };
-        
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
@@ -1553,10 +1282,6 @@ impl ListRowView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
@@ -1622,21 +1347,9 @@ impl TOMLView for ListRowView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             "display:flex".to_string(),
             "flex-direction:row".to_string(),
         ];
-        if self.is_scroll {
-            style_parts.push("overflow-x: auto".to_string());
-        } else {
-            style_parts.push("overflow: hidden".to_string());
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
@@ -1650,6 +1363,11 @@ impl TOMLView for ListRowView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
+        if self.is_scroll {
+            class_parts.push("overflow-x-auto".to_string());
+        } else {
+            class_parts.push("overflow-hidden".to_string());
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
@@ -1691,37 +1409,6 @@ impl TOMLView for ListRowView {
     }
 }
 
-impl AllocationView for ListRowView {
-    fn fixed(&self) -> String {
-        return self.fixed.to_string();
-    }
-    fn set_inner_padding(&mut self, value: String) {
-        self.inner_padding = value;
-    }
-    fn set_outer_padding(&mut self, ptype: PaddingType, value: String) {
-        match ptype {
-            PaddingType::LEFT => self.left_outer_padding = value,
-            PaddingType::RIGHT => self.right_outer_padding = value,
-            PaddingType::TOP => self.top_outer_padding = value,
-            PaddingType::BOTTOM => self.bottom_outer_padding = value,
-            PaddingType::HORIZONTAL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value;
-            }
-            PaddingType::VERTICAL => {
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value;
-            }
-            PaddingType::ALL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value.clone();
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value
-            }
-        }
-    }
-}
-
 pub struct MarkdownListColumnView {
     index_path: PathBuf,
     key: String,
@@ -1730,10 +1417,6 @@ pub struct MarkdownListColumnView {
     background: String,
     path: String,
     is_scroll: bool,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     align_subs: String,
@@ -1763,14 +1446,6 @@ impl MarkdownListColumnView {
         } else {
             Some(&merged)
         };
-        
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
@@ -1787,10 +1462,6 @@ impl MarkdownListColumnView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
@@ -1896,21 +1567,9 @@ impl TOMLView for MarkdownListColumnView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             "display:flex".to_string(),
             "flex-direction:column".to_string(),
         ];
-        if self.is_scroll {
-            style_parts.push("overflow-y: auto".to_string());
-        } else {
-            style_parts.push("overflow: hidden".to_string());
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
@@ -1924,6 +1583,11 @@ impl TOMLView for MarkdownListColumnView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
+        if self.is_scroll {
+            class_parts.push("overflow-y-auto".to_string());
+        } else {
+            class_parts.push("overflow-hidden".to_string());
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
@@ -1965,37 +1629,6 @@ impl TOMLView for MarkdownListColumnView {
     }
 }
 
-impl AllocationView for MarkdownListColumnView {
-    fn fixed(&self) -> String {
-        return self.fixed.to_string();
-    }
-    fn set_inner_padding(&mut self, value: String) {
-        self.inner_padding = value;
-    }
-    fn set_outer_padding(&mut self, ptype: PaddingType, value: String) {
-        match ptype {
-            PaddingType::LEFT => self.left_outer_padding = value,
-            PaddingType::RIGHT => self.right_outer_padding = value,
-            PaddingType::TOP => self.top_outer_padding = value,
-            PaddingType::BOTTOM => self.bottom_outer_padding = value,
-            PaddingType::HORIZONTAL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value;
-            }
-            PaddingType::VERTICAL => {
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value;
-            }
-            PaddingType::ALL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value.clone();
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value
-            }
-        }
-    }
-}
-
 pub struct MarkdownListRowView {
     index_path: PathBuf,
     key: String,
@@ -2004,10 +1637,6 @@ pub struct MarkdownListRowView {
     background: String,
     path: String,
     is_scroll: bool,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     align_subs: String,
@@ -2037,14 +1666,6 @@ impl MarkdownListRowView {
         } else {
             Some(&merged)
         };
-        
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
@@ -2061,10 +1682,6 @@ impl MarkdownListRowView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             align_subs: item_to_string(&table, "align_subs", "start", value),
@@ -2133,21 +1750,9 @@ impl TOMLView for MarkdownListRowView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             "display:flex".to_string(),
             "flex-direction:row".to_string(),
         ];
-        if self.is_scroll {
-            style_parts.push("overflow-x: auto".to_string());
-        } else {
-            style_parts.push("overflow: hidden".to_string());
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
@@ -2161,6 +1766,11 @@ impl TOMLView for MarkdownListRowView {
         let mut class_parts = vec![
             format!("items-{}", self.align_subs),
         ];
+        if self.is_scroll {
+            class_parts.push("overflow-x-auto".to_string());
+        } else {
+            class_parts.push("overflow-hidden".to_string());
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
@@ -2202,37 +1812,6 @@ impl TOMLView for MarkdownListRowView {
     }
 }
 
-impl AllocationView for MarkdownListRowView {
-    fn fixed(&self) -> String {
-        return self.fixed.to_string();
-    }
-    fn set_inner_padding(&mut self, value: String) {
-        self.inner_padding = value;
-    }
-    fn set_outer_padding(&mut self, ptype: PaddingType, value: String) {
-        match ptype {
-            PaddingType::LEFT => self.left_outer_padding = value,
-            PaddingType::RIGHT => self.right_outer_padding = value,
-            PaddingType::TOP => self.top_outer_padding = value,
-            PaddingType::BOTTOM => self.bottom_outer_padding = value,
-            PaddingType::HORIZONTAL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value;
-            }
-            PaddingType::VERTICAL => {
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value;
-            }
-            PaddingType::ALL => {
-                self.left_outer_padding = value.clone();
-                self.right_outer_padding = value.clone();
-                self.top_outer_padding = value.clone();
-                self.bottom_outer_padding = value
-            }
-        }
-    }
-}
-
 pub struct MarkdownView {
     index_path: PathBuf,
     key: String,
@@ -2241,10 +1820,6 @@ pub struct MarkdownView {
     background: String,
     path: String,
     is_scroll: bool,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     fixed: String,
@@ -2274,14 +1849,6 @@ impl MarkdownView {
         } else {
             Some(&merged)
         };
-        
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
@@ -2298,10 +1865,6 @@ impl MarkdownView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
@@ -2353,22 +1916,10 @@ impl TOMLView for MarkdownView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             "display:flex".to_string(),
             "flex-direction:column".to_string(),
             // "flex-shrink: 0".to_string(),
         ];
-        if self.is_scroll {
-            style_parts.push("overflow-y: auto".to_string());
-        } else {
-            style_parts.push("overflow: hidden".to_string());
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
@@ -2381,6 +1932,11 @@ impl TOMLView for MarkdownView {
 
         let mut class_parts = vec![
         ];
+        if self.is_scroll {
+            class_parts.push("overflow-y-auto".to_string());
+        } else {
+            class_parts.push("overflow-hidden".to_string());
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
@@ -2448,10 +2004,6 @@ pub struct GridView {
     background: String,
     path: String,
     is_scroll: bool,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     fixed: String,
@@ -2481,14 +2033,6 @@ impl GridView {
         } else {
             Some(&merged)
         };
-        
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
@@ -2505,10 +2049,6 @@ impl GridView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
@@ -2575,21 +2115,9 @@ impl TOMLView for GridView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
             // "display:flex".to_string(),
             // "flex-direction:row".to_string(),
         ];
-        if self.is_scroll {
-            style_parts.push("overflow-x: auto".to_string());
-        } else {
-            style_parts.push("overflow: hidden".to_string());
-        }
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
         }
@@ -2603,6 +2131,11 @@ impl TOMLView for GridView {
         let mut class_parts = vec![
             format!("grid grid-cols-{} gap-[{}]", self.row_count, self.inner_padding),
         ];
+        if self.is_scroll {
+            class_parts.push("overflow-x-auto".to_string());
+        } else {
+            class_parts.push("overflow-hidden".to_string());
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {
@@ -2652,10 +2185,6 @@ pub struct EmbedView {
     background: String,
     path: String,
     is_scroll: bool,
-    left_outer_padding: String,
-    top_outer_padding: String,
-    right_outer_padding: String,
-    bottom_outer_padding: String,
     inner_padding: String,
     align_absolute: String,
     fixed: String,
@@ -2684,14 +2213,6 @@ impl EmbedView {
         } else {
             Some(&merged)
         };
-        
-        let horizontal_padding = item_to_string(&table, "horizontal_padding", "0px", value);
-        let vertical_padding = item_to_string(&table, "vertical_padding", "0px", value);
-
-        let left_outer_padding = item_to_string(&table, "left_outer_padding", horizontal_padding.as_str(), value);
-        let top_outer_padding = item_to_string(&table, "top_outer_padding", vertical_padding.as_str(), value);
-        let right_outer_padding = item_to_string(&table, "right_outer_padding", horizontal_padding.as_str(), value);
-        let bottom_outer_padding = item_to_string(&table, "bottom_outer_padding", vertical_padding.as_str(), value);
 
         let custom_class = item_to_string(&table, "custom_class", "", value);
 
@@ -2708,10 +2229,6 @@ impl EmbedView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             is_scroll,
-            left_outer_padding,
-            top_outer_padding,
-            right_outer_padding,
-            bottom_outer_padding,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
@@ -2782,13 +2299,6 @@ impl TOMLView for EmbedView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            format!(
-                "padding:{} {} {} {}",
-                self.top_outer_padding,
-                self.right_outer_padding,
-                self.bottom_outer_padding,
-                self.left_outer_padding,
-            ),
         ];
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));

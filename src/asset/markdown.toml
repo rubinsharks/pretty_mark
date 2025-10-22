@@ -12,9 +12,7 @@ layout = "{header}"
 shape = "scroll_column"
 width = "100%"
 height = "100%"
-horizontal_padding = "20px"
-bottom_outer_padding = "80px"
-custom_class = "{custom_class}"
+custom_class = "{custom_class} pl-[20px] pr-[20px] pb-[80px]"
 
 [root.footer]
 shape = "embed"

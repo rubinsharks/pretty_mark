@@ -189,7 +189,11 @@ pub fn node_to_html(md: &Node, sup: Option<&Node>, index: Option<usize>, is_dark
             attrs: hashmap! {
                 "src".to_string() => format!("{}", node.url.to_string()),
                 "alt".to_string() => node.alt.to_string(),
-                "title".to_string() => match &node.title {
+                // "title".to_string() => match &node.title {
+                //     None => "".to_string(),
+                //     Some(title) => title.to_string(),
+                // },
+                "class".to_string() => match &node.title {
                     None => "".to_string(),
                     Some(title) => title.to_string(),
                 },

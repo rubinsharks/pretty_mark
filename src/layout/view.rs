@@ -724,6 +724,9 @@ impl TOMLView for TextView {
         if !self.vertical_align.is_empty() {
             class_parts.push(format!("items-{}", self.vertical_align));
         }
+        if !self.vertical_align.is_empty() || !self.horizontal_align.is_empty() {
+            class_parts.push("flex".to_string());
+        }
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
         } else if self.width != "wrap" {

@@ -158,6 +158,7 @@ pub fn node_to_html(md: &Node, sup: Option<&Node>, index: Option<usize>, is_dark
         Node::Code(node) => HTMLView {
             tag: "pre".to_string(),
             attrs: hashmap! {
+                "class".to_string() => filter_attrs("flex", is_dark),
             },
             value: "".to_string(),
             views: vec![

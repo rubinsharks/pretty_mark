@@ -177,7 +177,16 @@ pub fn node_to_html(md: &Node, sup: Option<&Node>, index: Option<usize>, is_dark
             attrs: hashmap! {
                 "href".to_string() => node.url.to_string(),
                 "class".to_string() => match &node.title {
-                    None => "".to_string(),
+                    None => match sup {
+                        None => String::from(""),
+                        Some(node) => match node {
+                            Node::Link(sup_link) => match &sup_link.title {
+                                None => "".to_string(),
+                                Some(title) => title.to_string(),
+                            }
+                            _ =>  "".to_string(),
+                        },
+                    }
                     Some(title) => title.to_string(),
                 },
             },

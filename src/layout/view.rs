@@ -171,8 +171,6 @@ impl TOMLView for ColumnView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            "display:flex".to_string(),
-            "flex-direction:column".to_string(),
             // "flex-shrink: 0".to_string(),
         ];
         if !self.fixed.is_empty() {
@@ -185,6 +183,7 @@ impl TOMLView for ColumnView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
+            "flex flex-col".to_string()
         ];
         if self.is_scroll {
             class_parts.push("overflow-y-auto".to_string());
@@ -357,8 +356,6 @@ impl TOMLView for RowView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            "display:flex".to_string(),
-            "flex-direction:row".to_string(),
             // "flex-shrink: 0".to_string(),
         ];
         if !self.inner_padding.trim().is_empty() {
@@ -371,6 +368,7 @@ impl TOMLView for RowView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
+            "flex flex-row".to_string()
         ];
         if self.is_scroll {
             class_parts.push("overflow-x-auto".to_string());
@@ -698,7 +696,6 @@ impl TOMLView for TextView {
     }
     fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {
         let mut class_parts = vec![
-            "flex".to_string()
         ];
         if !self.background.is_empty() {
             class_parts.push(format!("bg-[{}]", self.background));
@@ -1179,8 +1176,6 @@ impl TOMLView for ListColumnView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            "display:flex".to_string(),
-            "flex-direction:column".to_string(),
         ];
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
@@ -1193,6 +1188,7 @@ impl TOMLView for ListColumnView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
+            "flex flex-col".to_string()
         ];
         if self.is_scroll {
             class_parts.push("overflow-y-auto".to_string());
@@ -1361,8 +1357,6 @@ impl TOMLView for ListRowView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            "display:flex".to_string(),
-            "flex-direction:row".to_string(),
         ];
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
@@ -1375,6 +1369,7 @@ impl TOMLView for ListRowView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
+            "flex flex-row".to_string()
         ];
         if self.is_scroll {
             class_parts.push("overflow-x-auto".to_string());
@@ -1583,8 +1578,6 @@ impl TOMLView for MarkdownListColumnView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            "display:flex".to_string(),
-            "flex-direction:column".to_string(),
         ];
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
@@ -1597,6 +1590,7 @@ impl TOMLView for MarkdownListColumnView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
+            "flex flex-col".to_string()
         ];
         if self.is_scroll {
             class_parts.push("overflow-y-auto".to_string());
@@ -1768,8 +1762,6 @@ impl TOMLView for MarkdownListRowView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            "display:flex".to_string(),
-            "flex-direction:row".to_string(),
         ];
         if !self.fixed.is_empty() {
             style_parts.push(format!("position: fixed; {}: 0", self.fixed));
@@ -1782,6 +1774,7 @@ impl TOMLView for MarkdownListRowView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
+            "flex flex-row".to_string()
         ];
         if self.is_scroll {
             class_parts.push("overflow-x-auto".to_string());
@@ -1936,8 +1929,6 @@ impl TOMLView for MarkdownView {
 
         let mut style_parts = vec![
             format!("background:{}", self.background),
-            "display:flex".to_string(),
-            "flex-direction:column".to_string(),
             // "flex-shrink: 0".to_string(),
         ];
         if !self.fixed.is_empty() {
@@ -1951,6 +1942,7 @@ impl TOMLView for MarkdownView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
+            "flex flex-col".to_string()
         ];
         if self.is_scroll {
             class_parts.push("overflow-y-auto".to_string());

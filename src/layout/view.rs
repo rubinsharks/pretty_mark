@@ -643,11 +643,11 @@ impl TextView {
             background: item_to_string(&table, "background", "transparent", value),
             path: item_to_string(&table, "path", "", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
-            size: item_to_string(&table, "size", "16px", value),
+            size: item_to_string(&table, "size", "", value),
             text: item_to_string(&table, "text", "", value),
-            color: item_to_string(&table, "color", "black", value),
-            family: item_to_string(&table, "family", "Arial", value),
-            weight: item_to_string(&table, "weight", "normal", value),
+            color: item_to_string(&table, "color", "", value),
+            family: item_to_string(&table, "family", "", value),
+            weight: item_to_string(&table, "weight", "", value),
             underline: item_to_bool(&table, "underline", false, value),
             horizontal_align: item_to_string(&table, "horizontal_align", "left", value),
             vertical_align: item_to_string(&table, "vertical_align", "top", value),
@@ -702,6 +702,12 @@ impl TOMLView for TextView {
         }
         if !self.color.is_empty() {
             class_parts.push(format!("text-[{}]", self.color));
+        } else {
+            if self.dark {
+                class_parts.push("text-slate-50".to_string());
+            } else {
+                class_parts.push("text-slate-950".to_string());
+            }
         }
         if !self.family.is_empty() {
             class_parts.push(format!("font-[{}]", self.family));

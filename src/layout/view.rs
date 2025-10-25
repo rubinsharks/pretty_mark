@@ -106,7 +106,7 @@ impl ColumnView {
             is_scroll,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
-            align_subs: item_to_string(&table, "align_subs", "start", value),
+            align_subs: item_to_string(&table, "align_subs", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             custom_class,
             value: value.cloned(),
@@ -185,7 +185,6 @@ impl TOMLView for ColumnView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
-            format!("items-{}", self.align_subs),
         ];
         if self.is_scroll {
             class_parts.push("overflow-y-auto".to_string());
@@ -201,6 +200,9 @@ impl TOMLView for ColumnView {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_subs.is_empty() {
+            class_parts.push(format!("items-{}", self.align_subs));
         }
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();
@@ -290,7 +292,7 @@ impl RowView {
             is_scroll,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
-            align_subs: item_to_string(&table, "align_subs", "start", value),
+            align_subs: item_to_string(&table, "align_subs", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             custom_class,
             value: value.cloned(),
@@ -369,7 +371,6 @@ impl TOMLView for RowView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
-            format!("items-{}", self.align_subs),
         ];
         if self.is_scroll {
             class_parts.push("overflow-x-auto".to_string());
@@ -385,6 +386,9 @@ impl TOMLView for RowView {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_subs.is_empty() {
+            class_parts.push(format!("items-{}", self.align_subs));
         }
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();
@@ -470,7 +474,7 @@ impl BoxView {
             path: item_to_string(&table, "path", "", value),
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
-            align_subs: item_to_string(&table, "align_subs", "start", value),
+            align_subs: item_to_string(&table, "align_subs", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             custom_class,
             value: value.cloned(),
@@ -543,7 +547,6 @@ impl TOMLView for BoxView {
 
         let mut class_parts = vec![
             "relative".to_string(),
-            format!("items-{}", self.align_subs),
         ];
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
@@ -554,6 +557,9 @@ impl TOMLView for BoxView {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_subs.is_empty() {
+            class_parts.push(format!("items-{}", self.align_subs));
         }
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();
@@ -1110,7 +1116,7 @@ impl ListColumnView {
             is_scroll,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
-            align_subs: item_to_string(&table, "align_subs", "start", value),
+            align_subs: item_to_string(&table, "align_subs", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             custom_class,
             value: value.cloned(),
@@ -1187,7 +1193,6 @@ impl TOMLView for ListColumnView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
-            format!("items-{}", self.align_subs),
         ];
         if self.is_scroll {
             class_parts.push("overflow-y-auto".to_string());
@@ -1203,6 +1208,9 @@ impl TOMLView for ListColumnView {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_subs.is_empty() {
+            class_parts.push(format!("items-{}", self.align_subs));
         }
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();
@@ -1290,7 +1298,7 @@ impl ListRowView {
             is_scroll,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
-            align_subs: item_to_string(&table, "align_subs", "start", value),
+            align_subs: item_to_string(&table, "align_subs", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             custom_class,
             value: value.cloned(),
@@ -1367,7 +1375,6 @@ impl TOMLView for ListRowView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
-            format!("items-{}", self.align_subs),
         ];
         if self.is_scroll {
             class_parts.push("overflow-x-auto".to_string());
@@ -1383,6 +1390,9 @@ impl TOMLView for ListRowView {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_subs.is_empty() {
+            class_parts.push(format!("items-{}", self.align_subs));
         }
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();
@@ -1470,7 +1480,7 @@ impl MarkdownListColumnView {
             is_scroll,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
-            align_subs: item_to_string(&table, "align_subs", "start", value),
+            align_subs: item_to_string(&table, "align_subs", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             custom_class,
             value: value.cloned(),
@@ -1587,7 +1597,6 @@ impl TOMLView for MarkdownListColumnView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
-            format!("items-{}", self.align_subs),
         ];
         if self.is_scroll {
             class_parts.push("overflow-y-auto".to_string());
@@ -1603,6 +1612,9 @@ impl TOMLView for MarkdownListColumnView {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_subs.is_empty() {
+            class_parts.push(format!("items-{}", self.align_subs));
         }
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();
@@ -1690,7 +1702,7 @@ impl MarkdownListRowView {
             is_scroll,
             inner_padding: item_to_string(&table, "inner_padding", "0px", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
-            align_subs: item_to_string(&table, "align_subs", "start", value),
+            align_subs: item_to_string(&table, "align_subs", "", value),
             fixed: item_to_string(&table, "fixed", "", value),
             custom_class,
             value: value.cloned(),
@@ -1770,7 +1782,6 @@ impl TOMLView for MarkdownListRowView {
         let style = style_parts.join("; ") + ";"; // 끝에 세미콜론
 
         let mut class_parts = vec![
-            format!("items-{}", self.align_subs),
         ];
         if self.is_scroll {
             class_parts.push("overflow-x-auto".to_string());
@@ -1786,6 +1797,9 @@ impl TOMLView for MarkdownListRowView {
             class_parts.push(self.height.clone());
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
+        }
+        if !self.align_subs.is_empty() {
+            class_parts.push(format!("items-{}", self.align_subs));
         }
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();

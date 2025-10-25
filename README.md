@@ -94,14 +94,14 @@ text = "Title"
 color = "#fff"
 size = "24px"
 weight = "bold"
-left_outer_padding = "20px"
+custom_class = "pl-[20px]"
 
 [root.child2]
 shape = "markdown"
 width = "100%"
 height = "100%"
 markdown_path = "title.md"
-horizontal_outer_padding = "20px"
+custom_class = "pl-[20px] pr-[20px]"
 
 ```
 
@@ -228,7 +228,7 @@ width = "100%"
 height = "wrap"
 layout = "markdown_row"
 files = "*.md"
-horizontal_padding = "20px"
+custom_class = "pl-[20px] pr-[20px]"
 
 [root.footer]
 shape = "embed"
@@ -331,13 +331,14 @@ You can link to it like above.
 After adding the image file,
 
 ```markdown
-![Alt text](image.jpeg "Optional title")
-
+![Alt text](image.jpeg "rounded-[10px]")
 ```
 
-As shown above, simply add an exclamation mark (!), followed by the alt text, and then the file name, such as image.jpeg.
+As shown above, simply add an exclamation mark (!), followed by the alt text, and then the file name, such as image.jpeg. The **Title** section supports Tailwind attributes, allowing you to modify the size and properties of the image.
 
 ### Supported Markdown
+
+The following Markdown attributes are supported.
 
 ```
 Heading
@@ -359,7 +360,7 @@ Line
 Link
 [Text](MdLink "Title")
 [Text](HttpLink "Title")
-![Alt](ImageLink "Title")
+![Alt](ImageLink "rounded-[10px]")
 
 TextStyle
 **Strong**
@@ -382,4 +383,32 @@ Table
 | February | $80     |
 | March    | $420    |
 
+```
+
+### Frontmatter
+
+To complement the limitations of Markdown, Frontmatter is supported. The following are the reserved keywords that can be used. For **header** and **footer**, a layout must be specified in the parent layout, and the designated names should be targeted.
+
+When **custom_class** is added to the parent `<div>` of the Markdown HTML, Tailwind class attributes are supported.
+
+```markdown
+---
+title: "Python Minus"
+created: 25-10-01
+header: nav
+footer: footer
+dark: false
+publish: false
+tags: [python, math]
+custom_class: mx-auto max-w-screen-xl
+
+---
+```
+
+### Image Attr
+
+You can place the Tailwind image attributes in the **Title** section as shown below. The actual **Title** itself is not used.
+
+```markdown
+![Profile](profile_small.jpeg "max-w-[400px] rounded-[10px]")
 ```

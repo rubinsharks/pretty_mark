@@ -713,7 +713,7 @@ impl TOMLView for TextView {
             }
         }
         if !self.family.is_empty() {
-            class_parts.push(format!("font-[{}]", self.family));
+            class_parts.push(format!("font-{}", self.family));
         }
         if !self.weight.is_empty() {
             class_parts.push(format!("font-{}", self.weight));

@@ -823,7 +823,7 @@ impl ImageView {
             path: item_to_string(&table, "path", "", value),
             align_absolute: item_to_string(&table, "align_absolute", "", value),
             image_path: item_to_string(&table, "image_path", "", value),
-            content_size: item_to_string(&table, "content_size", "cover", value),
+            content_size: item_to_string(&table, "content_size", "", value),
             rounded: item_to_string(&table, "rounded", "", value),
             custom_class,
             value: value.cloned(),
@@ -867,11 +867,11 @@ impl TOMLView for ImageView {
     fn htmlview(&self, super_view: Option<&dyn TOMLView>) -> HTMLView {
         let mut img_style_parts = vec![
             format!("background:{}", self.background),
-            format!("display: {}", "flex"),
         ];
         let img_style = img_style_parts.join("; ") + ";"; // 끝에 세
 
         let mut class_parts = vec![
+            "flex".to_string()
         ];
         if self.width.starts_with("w-") {
             class_parts.push(self.width.clone());
@@ -883,7 +883,9 @@ impl TOMLView for ImageView {
         } else if self.height != "wrap" {
             class_parts.push(format!("h-[{}]", self.height));
         }
-        class_parts.push(format!("object-{}", self.content_size));
+        if !self.content_size.is_empty() {
+            class_parts.push(format!("object-{}", self.content_size));
+        }
         if !self.align_absolute.is_empty() {
             let mut align_class = self.align_absolute.clone();
 

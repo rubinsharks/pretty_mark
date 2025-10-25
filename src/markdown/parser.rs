@@ -176,6 +176,10 @@ pub fn node_to_html(md: &Node, sup: Option<&Node>, index: Option<usize>, is_dark
             tag: "a".to_string(),
             attrs: hashmap! {
                 "href".to_string() => node.url.to_string(),
+                "class".to_string() => match &node.title {
+                    None => "".to_string(),
+                    Some(title) => title.to_string(),
+                },
             },
             value: "".to_string(),
             views: node
